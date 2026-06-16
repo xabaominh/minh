@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxDecor - Bộ Sưu Tập</title>
+    <meta name="description" content="Khám phá bộ sưu tập nội thất cao cấp tại LuxDecor - phòng khách, phòng ngủ, văn phòng.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Notification Container -->
+    <div id="notificationArea"></div>
+
+    <!-- Header — Cùng cấu trúc với web.html -->
+    <header id="header">
+        <nav class="danhSachMenu">
+            <div class="cum-logo">
+                <a href="web.html" class="logo">Lux<span>Decor</span></a>
+            </div>
+
+            <ul class="cum-giua">
+                <li><a href="web.html">Trang Chủ</a></li>
+                <li><a href="web1.html" class="active">Bộ Sưu Tập</a></li>
+                <li><a href="web.html#categories">Danh Mục</a></li>
+                <li><a href="web.html#features">Tính Năng</a></li>
+            </ul>
+
+            <div class="cum-phai">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Tìm sản phẩm...">
+                    <i class="fas fa-search search-icon" id="searchIcon"></i>
+                </div>
+                <a href="#" class="giohang-btn" id="cartBtn">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-badge" id="cartCount">0</span>
+                </a>
+            </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <!-- ============ NỘI DUNG CHÍNH ============ -->
+    <div class="trang-bo-suu-tap">
+
+        <!-- Tiêu đề trang -->
+        <div class="tieu-de-trang">
+            <p class="section-subtitle">Bộ sưu tập 2026</p>
+            <h1>Khám Phá Bộ Sưu Tập</h1>
+            <p>Tìm kiếm những món đồ nội thất hoàn hảo cho ngôi nhà của bạn</p>
+        </div>
+
+        <div class="khung-chinh-collection">
+
+            <!-- ===== SIDEBAR DANH MỤC ===== -->
+            <!-- Được render dynamic từ API: GET /api/categories -->
+            <aside class="thanh-danh-muc-doc" id="sidebarPanel">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-layer-group"></i> Danh Mục</h3>
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+                <ul id="menu-trai">
+                    <!-- JS sẽ gọi API /api/categories và render danh mục vào đây -->
+                    <li><a href="#" class="active" data-category="">Tất Cả Sản Phẩm</a></li>
+                    <li class="loading-cat"><i class="fas fa-spinner fa-spin"></i> Đang tải danh mục...</li>
+                </ul>
+
+                <!-- Bộ lọc giá -->
+                <div class="sidebar-section">
+                    <h4>Khoảng Giá</h4>
+                    <div class="price-filter">
+                        <input type="number" id="priceMin" placeholder="Từ" min="0">
+                        <span>—</span>
+                        <input type="number" id="priceMax" placeholder="Đến" min="0">
+                    </div>
+                    <button class="filter-price-btn" id="filterPriceBtn">
+                        <i class="fas fa-filter"></i> Lọc Giá
+                    </button>
+                </div>
+
+                <!-- Sắp xếp -->
+                <div class="sidebar-section">
+                    <h4>Sắp Xếp</h4>
+                    <select id="sortSelect" class="sort-select">
+                        <option value="">Mặc định</option>
+                        <option value="price_asc">Giá: Thấp → Cao</option>
+                        <option value="price_desc">Giá: Cao → Thấp</option>
+                        <option value="name_asc">Tên: A → Z</option>
+                        <option value="name_desc">Tên: Z → A</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- ===== KHU VỰC HIỂN THỊ SẢN PHẨM ===== -->
+            <div class="khu-vuc-hien-thi">
+                <!-- Thanh toolbar: search mobile + count + view mode -->
+                <div class="toolbar-hien-thi">
+                    <div class="search-mobile-collection">
+                        <input type="text" id="searchInputCollection" placeholder="Tìm kiếm trong bộ sưu tập...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <p class="so-luong-sp">
+                        Đang hiển thị <strong id="productCount">0</strong> sản phẩm
+                        <span id="filterInfo"></span>
+                    </p>
+                </div>
+
+                <!-- Container rỗng — JS gọi API và render vào đây -->
+                <div class="luoi-san-pham" id="collectionGrid">
+                    <div class="loading-products">
+                        <div class="spinner-small"></div>
+                        <p>Đang tải bộ sưu tập...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="footer-top">
+            <div class="cot-footer logo-info">
+                <h2 class="footer-logo">Lux<span>Decor</span></h2>
+                <p>Nơi kiến tạo không gian sống đỉnh cao với nội thất và trang trí chất lượng vượt trội.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="cot-footer">
+                <h3>Cửa Hàng</h3>
+                <ul>
+                    <li><a href="#">Phòng Khách</a></li>
+                    <li><a href="#">Phòng Ngủ</a></li>
+                    <li><a href="#">Phòng Ăn</a></li>
+                    <li><a href="#">Văn Phòng</a></li>
+                </ul>
+            </div>
+            <div class="cot-footer">
+                <h3>Hỗ Trợ</h3>
+                <ul>
+                    <li><a href="#">Liên Hệ</a></li>
+                    <li><a href="#">Thông Tin Giao Hàng</a></li>
+                    <li><a href="#">Chính Sách Đổi Trả</a></li>
+                    <li><a href="#">Câu Hỏi Thường Gặp</a></li>
+                </ul>
+            </div>
+            <div class="cot-footer">
+                <h3>Công Ty</h3>
+                <ul>
+                    <li><a href="#">Giới Thiệu</a></li>
+                    <li><a href="#">Tuyển Dụng</a></li>
+                    <li><a href="#">Chính Sách Bảo Mật</a></li>
+                    <li><a href="#">Điều Khoản Dịch Vụ</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 LuxDecor. Tất cả các quyền được bảo lưu.</p>
+        </div>
+    </footer>
+
+    <!-- Back to top button -->
+    <a href="#" class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <!-- ============ CART MODAL (dùng chung localStorage với web.html) ============ -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-content">
+            <div class="cart-header">
+                <h2><i class="fas fa-shopping-bag"></i> Giỏ Hàng Của Bạn</h2>
+                <button class="close-cart" id="closeCartBtn">&times;</button>
+            </div>
+            <div class="cart-items" id="cartItems">
+                <p class="empty-cart"><i class="fas fa-shopping-basket"></i><br>Giỏ hàng trống</p>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Tổng cộng:</span>
+                    <strong id="cartTotal">0 ₫</strong>
+                </div>
+                <button class="checkout-btn" id="checkoutBtn">
+                    <i class="fas fa-credit-card"></i> Thanh Toán
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="overlay" id="overlay"></div>
+
+    <script src="web1.js"></script>
+</body>
+</html>
