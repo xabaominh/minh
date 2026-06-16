@@ -1,0 +1,449 @@
+/* =====================================================
+   LuxDecor — Home Page
+   Banner, Products, Categories, Features, Newsletter
+   ===================================================== */
+
+/* ===== HERO BANNER ===== */
+.anhbia {
+    position: relative;
+    height: 92vh;
+    min-height: 550px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.anhbia > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.35) saturate(1.1);
+    transition: transform 8s ease;
+}
+
+.anhbia:hover > img {
+    transform: scale(1.03);
+}
+
+.banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(26, 26, 46, 0.4) 0%,
+        rgba(26, 26, 46, 0.6) 50%,
+        rgba(26, 26, 46, 0.9) 100%
+    );
+}
+
+.noi-dung-banner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 720px;
+    padding: 0 24px;
+    animation: fadeInUp 1s ease-out;
+}
+
+.banner-tag {
+    display: inline-block;
+    background: rgba(201, 168, 76, 0.2);
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 24px;
+    border-radius: 50px;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+}
+
+.tieu-de-welcome {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+}
+
+.tieu-de-welcome span {
+    color: var(--accent);
+}
+
+.mo-ta-sub {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.7;
+    margin-bottom: 36px;
+}
+
+.banner-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ===== PRODUCTS SECTION ===== */
+.products-section {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 80px 32px;
+}
+
+.section-subtitle {
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.cacmathang {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 48px;
+}
+
+.cacmathang h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    letter-spacing: -0.5px;
+}
+
+/* Product grid */
+.danh-sach-san-pham {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 28px;
+}
+
+/* Product card */
+.the-san-pham {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    border: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.the-san-pham.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.the-san-pham:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+    border-color: transparent;
+}
+
+.product-img-wrapper {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+}
+
+.product-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.the-san-pham:hover .product-img-wrapper img {
+    transform: scale(1.08);
+}
+
+.product-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(26, 26, 46, 0.8);
+    backdrop-filter: blur(8px);
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 50px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.thong-tin {
+    padding: 22px;
+}
+
+.thong-tin h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.gia-tien {
+    color: var(--accent);
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+}
+
+/* ===== CATEGORIES SECTION ===== */
+.categories-section {
+    background: var(--primary);
+    padding: 80px 32px;
+}
+
+.muasamtheodanhmuc {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.muasamtheodanhmuc h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+.muasamtheodanhmuc .section-subtitle {
+    color: var(--accent);
+}
+
+.danhsachdanhmuc {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 32px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    font-size: 0.88rem;
+    transition: var(--transition);
+    min-width: 140px;
+    cursor: pointer;
+}
+
+.category-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(201, 168, 76, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--accent);
+    transition: var(--transition);
+}
+
+.category-item:hover,
+.category-item.active {
+    background: rgba(201, 168, 76, 0.15);
+    border-color: var(--accent);
+    color: #fff;
+    transform: translateY(-5px);
+}
+
+.category-item:hover .category-icon,
+.category-item.active .category-icon {
+    background: var(--accent);
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+/* ===== FEATURES SECTION ===== */
+.feature-section {
+    padding: 80px 32px;
+}
+
+.khu-vuc-feature {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.tieu-de-chinh {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 50px;
+    letter-spacing: -0.5px;
+}
+
+.khu-vuc-feature .section-subtitle {
+    margin-bottom: 8px;
+}
+
+.danh-sach-feature {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+}
+
+.hop-feature {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 30px;
+    text-align: center;
+    transition: var(--transition);
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.hop-feature.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hop-feature:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+}
+
+.icon-tron {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-glow), rgba(201, 168, 76, 0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 22px;
+    font-size: 1.5rem;
+    color: var(--accent);
+    transition: var(--transition);
+}
+
+.hop-feature:hover .icon-tron {
+    background: var(--accent);
+    color: var(--primary);
+    transform: scale(1.1) rotate(8deg);
+}
+
+.hop-feature h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+}
+
+.hop-feature p {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+/* ===== HOME RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .tieu-de-welcome {
+        font-size: 2.2rem;
+    }
+
+    .anhbia {
+        height: 70vh;
+    }
+
+    .banner-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .products-section {
+        padding: 48px 20px;
+    }
+
+    .cacmathang {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .cacmathang h1 {
+        font-size: 1.6rem;
+    }
+
+    .danh-sach-san-pham {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+    }
+
+    .categories-section {
+        padding: 48px 20px;
+    }
+
+    .danhsachdanhmuc {
+        gap: 12px;
+    }
+
+    .category-item {
+        min-width: 110px;
+        padding: 20px 16px;
+        font-size: 0.8rem;
+    }
+
+    .category-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 1.1rem;
+    }
+
+    .feature-section {
+        padding: 48px 20px;
+    }
+
+    .tieu-de-chinh,
+    .muasamtheodanhmuc h1 {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tieu-de-welcome {
+        font-size: 1.8rem;
+    }
+
+    .mo-ta-sub {
+        font-size: 0.95rem;
+    }
+
+    .danh-sach-san-pham {
+        grid-template-columns: 1fr;
+    }
+
+    .danhsachdanhmuc {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .category-item {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 16px;
+    }
+}

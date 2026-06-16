@@ -1,0 +1,84 @@
+/* =====================================================
+   LuxDecor — Orders Page
+   ===================================================== */
+
+.orders-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.order-card {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.order-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+}
+
+.order-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.order-card-header strong {
+    font-size: 1rem;
+}
+
+.order-date {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-left: 12px;
+}
+
+.order-status-badge {
+    padding: 5px 16px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.order-card-body {
+    padding: 18px 22px;
+}
+
+.order-card-body p {
+    color: var(--text-body);
+    font-size: 0.88rem;
+    margin-bottom: 6px;
+}
+
+.order-card-body p i {
+    color: var(--accent);
+    width: 18px;
+    margin-right: 8px;
+}
+
+.order-card-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    text-align: right;
+}
+
+.order-card-footer strong {
+    color: var(--accent);
+    font-size: 1.15rem;
+}

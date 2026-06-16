@@ -1,0 +1,61 @@
+/* =====================================================
+   LuxDecor — CSS Variables & Reset
+   ===================================================== */
+
+:root {
+    --primary: #1a1a2e;
+    --primary-light: #16213e;
+    --accent: #c9a84c;
+    --accent-hover: #b8953d;
+    --accent-glow: rgba(201, 168, 76, 0.25);
+    --bg-body: #f7f7f9;
+    --bg-white: #ffffff;
+    --bg-card: #ffffff;
+    --text-dark: #1a1a2e;
+    --text-body: #444;
+    --text-muted: #888;
+    --border: #e8e8ef;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+}
+
+body {
+    font-family: var(--font);
+    background-color: var(--bg-body);
+    color: var(--text-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}

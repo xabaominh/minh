@@ -1,0 +1,113 @@
+/* =====================================================
+   LuxDecor — Footer
+   ===================================================== */
+
+#footer {
+    background: #0d0d1a;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.footer-top {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 40px;
+    padding: 64px 32px 48px;
+}
+
+.footer-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.cot-footer.logo-info p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+.social-links {
+    display: flex;
+    gap: 12px;
+}
+
+.social-links a {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.5);
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.social-links a:hover {
+    background: var(--accent);
+    color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.cot-footer h3 {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 12px;
+}
+
+.cot-footer h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: var(--accent);
+}
+
+.cot-footer ul {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cot-footer ul li a {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.88rem;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.cot-footer ul li a:hover {
+    color: var(--accent);
+    transform: translateX(4px);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: center;
+    padding: 20px 32px;
+    font-size: 0.85rem;
+}
+
+/* Responsive Footer */
+@media (max-width: 1024px) {
+    .footer-top {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-top {
+        grid-template-columns: 1fr;
+        padding: 40px 20px 32px;
+        gap: 28px;
+    }
+}

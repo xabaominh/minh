@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxDecor — Nội Thất Cao Cấp</title>
+    <meta name="description" content="LuxDecor - Thương hiệu nội thất cao cấp hàng đầu Việt Nam. Sofa, giường ngủ, bàn ăn, ghế văn phòng với chất liệu gỗ tự nhiên.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- ===== APP SHELL ===== -->
+    <div id="app">
+        <!-- Header slot -->
+        <div id="header-slot"></div>
+
+        <!-- Main view slot -->
+        <main id="view-slot"></main>
+
+        <!-- Footer slot -->
+        <div id="footer-slot"></div>
+    </div>
+
+    <!-- ===== MODAL SLOTS ===== -->
+    <div id="cart-modal-slot"></div>
+    <div id="auth-modal-slot"></div>
+    <div id="checkout-modal-slot"></div>
+    <div id="product-modal-slot"></div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Notifications -->
+    <div id="notificationArea"></div>
+
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop"><i class="fas fa-chevron-up"></i></a>
+
+    <!-- Scripts (ES Module) -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!-- ===== COLLECTION VIEW ===== -->
+<div class="trang-bo-suu-tap">
+    <div class="tieu-de-trang">
+        <h3 class="section-subtitle">KHÁM PHÁ</h3>
+        <h1>Bộ Sưu Tập Nổi Bật</h1>
+        <p>Tìm kiếm sự hoàn hảo cho không gian của bạn</p>
+    </div>
+    <div class="khung-chinh-collection">
+        
+        <!-- Sidebar -->
+        <aside class="thanh-danh-muc-doc" id="sidebarPanel">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-filter"></i> Lọc Sản Phẩm</h3>
+                <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-down"></i></button>
+            </div>
+
+            <!-- Categories -->
+            <ul id="menu-trai">
+                <li><a href="#" class="active" data-category-id="">Tất cả sản phẩm</a></li>
+                <!-- JS load danh mục vào đây -->
+                <li class="loading-cat">Đang tải danh mục...</li>
+            </ul>
+
+            <!-- Price Filter -->
+            <div class="sidebar-section">
+                <h4>Khoảng giá</h4>
+                <div class="price-filter">
+                    <input type="number" id="priceMin" placeholder="Từ" min="0" step="100000">
+                    <span>-</span>
+                    <input type="number" id="priceMax" placeholder="Đến" min="0" step="100000">
+                </div>
+                <button class="filter-price-btn" id="filterPriceBtn">Áp dụng</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="khu-vuc-hien-thi">
+            <div class="toolbar-hien-thi">
+                <div class="search-mobile-collection">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInputCollection" placeholder="Tìm tên hoặc loại sản phẩm...">
+                </div>
+                <div class="so-luong-sp">
+                    Đang hiển thị <strong id="productCount">0</strong> sản phẩm <span id="filterInfo"></span>
+                </div>
+                <div>
+                    <select class="sort-select" id="sortSelect">
+                        <option value="default">Sắp xếp mặc định</option>
+                        <option value="price_asc">Giá: Thấp đến Cao</option>
+                        <option value="price_desc">Giá: Cao đến Thấp</option>
+                        <option value="name_asc">Tên: A-Z</option>
+                        <option value="name_desc">Tên: Z-A</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="luoi-san-pham" id="collectionGrid">
+                <!-- JS load products list here -->
+            </div>
+        </div>
+        
+    </div>
+</div>

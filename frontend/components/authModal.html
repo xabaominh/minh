@@ -1,0 +1,60 @@
+<!-- ===== AUTH MODAL COMPONENT ===== -->
+<div class="auth-modal" id="authModal">
+    <div class="auth-content">
+        <button class="close-auth" id="closeAuthBtn">&times;</button>
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Đăng Nhập</button>
+            <button class="auth-tab" data-tab="register">Đăng Ký</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form">
+            <div class="auth-form-icon"><i class="fas fa-sign-in-alt"></i></div>
+            <h3>Chào Mừng Trở Lại</h3>
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Tên đăng nhập hoặc Email</label>
+                <input type="text" id="loginUsername" required placeholder="Nhập username hoặc email">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Mật khẩu</label>
+                <input type="password" id="loginPassword" required placeholder="Nhập mật khẩu">
+            </div>
+            <button type="submit" class="auth-submit-btn" id="loginSubmitBtn">
+                <i class="fas fa-sign-in-alt"></i> Đăng Nhập
+            </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="auth-form" style="display:none;">
+            <div class="auth-form-icon"><i class="fas fa-user-plus"></i></div>
+            <h3>Tạo Tài Khoản Mới</h3>
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Tên đăng nhập *</label>
+                <input type="text" id="regUsername" required placeholder="Chọn username">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Email *</label>
+                <input type="email" id="regEmail" required placeholder="email@example.com">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Mật khẩu *</label>
+                <input type="password" id="regPassword" required placeholder="Tối thiểu 4 ký tự">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-id-card"></i> Họ và tên</label>
+                <input type="text" id="regFullname" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-phone"></i> Số điện thoại</label>
+                <input type="tel" id="regPhone" placeholder="0901234567">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> Địa chỉ</label>
+                <input type="text" id="regAddress" placeholder="123 Nguyễn Huệ, Q1, TP.HCM">
+            </div>
+            <button type="submit" class="auth-submit-btn" id="registerSubmitBtn">
+                <i class="fas fa-user-plus"></i> Đăng Ký
+            </button>
+        </form>
+    </div>
+</div>

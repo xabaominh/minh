@@ -1,0 +1,50 @@
+/* =====================================================
+   LuxDecor — Toast Notifications
+   ===================================================== */
+
+#notificationArea {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notification {
+    padding: 14px 24px;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow-md);
+    transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 360px;
+    font-family: var(--font);
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success { background: #27ae60; }
+.notification.error   { background: #e74c3c; }
+.notification.warning { background: #f39c12; }
+.notification.info    { background: #3498db; }
+
+/* Responsive Notifications */
+@media (max-width: 768px) {
+    #notificationArea {
+        right: 10px;
+        left: 10px;
+    }
+
+    .notification {
+        max-width: 100%;
+    }
+}

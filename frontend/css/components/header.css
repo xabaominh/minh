@@ -1,0 +1,281 @@
+/* =====================================================
+   LuxDecor — Header & Navigation
+   ===================================================== */
+
+#header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(26, 26, 46, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: var(--transition);
+}
+
+#header.scrolled {
+    background: rgba(26, 26, 46, 0.96);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.danhSachMenu {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    transition: padding 0.3s ease;
+}
+
+#header.scrolled .danhSachMenu {
+    padding: 10px 32px;
+}
+
+/* Logo */
+.cum-logo .logo {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+.cum-logo .logo span,
+.footer-logo span {
+    color: var(--accent);
+}
+
+/* Menu giữa */
+.cum-giua {
+    display: flex;
+    gap: 8px;
+}
+
+.cum-giua li a {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 8px 18px;
+    border-radius: 50px;
+    transition: var(--transition);
+    position: relative;
+}
+
+.cum-giua li a:hover,
+.cum-giua li a.active {
+    color: #fff;
+    background: rgba(201, 168, 76, 0.15);
+}
+
+.cum-giua li a.active {
+    background: var(--accent);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Cụm phải: Search + Cart */
+.cum-phai {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 9px 16px 9px 38px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    width: 200px;
+    outline: none;
+    transition: var(--transition);
+    font-family: var(--font);
+}
+
+.search-box input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.search-box input:focus {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: var(--accent);
+    width: 260px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.85rem;
+}
+
+/* Cart button */
+.giohang-btn {
+    position: relative;
+    color: #fff;
+    font-size: 1.15rem;
+    padding: 8px;
+    transition: var(--transition);
+}
+
+.giohang-btn:hover {
+    color: var(--accent);
+    transform: scale(1.1);
+}
+
+.cart-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    background: var(--accent);
+    color: var(--primary);
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    display: none;
+}
+
+/* Mobile menu button */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 8px;
+}
+
+/* User Menu */
+.user-menu-wrapper {
+    position: relative;
+}
+
+.user-btn {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.2rem;
+    padding: 6px 8px;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.user-btn:hover,
+.user-btn-active {
+    color: var(--accent);
+}
+
+.user-logged-in {
+    position: relative;
+}
+
+.user-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    background: var(--bg-white);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    min-width: 220px;
+    overflow: hidden;
+    z-index: 999;
+    border: 1px solid var(--border);
+    animation: fadeInDown 0.25s ease;
+}
+
+.user-dropdown.show {
+    display: block;
+}
+
+.user-dropdown-header {
+    padding: 16px 18px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.user-dropdown-header i {
+    font-size: 1.3rem;
+    color: var(--accent);
+}
+
+.user-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    color: var(--text-body);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.user-dropdown a:hover {
+    background: rgba(201, 168, 76, 0.08);
+    color: var(--accent);
+}
+
+.user-dropdown a i {
+    width: 18px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.user-dropdown a:hover i {
+    color: var(--accent);
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+    .cum-giua {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--primary);
+        flex-direction: column;
+        padding: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .cum-giua.mobile-open {
+        display: flex;
+    }
+
+    .cum-giua li a {
+        padding: 12px 20px;
+        border-radius: var(--radius-sm);
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .search-box {
+        display: none;
+    }
+
+    .user-dropdown {
+        right: -60px;
+    }
+}

@@ -1,0 +1,58 @@
+<!-- ===== HEADER COMPONENT ===== -->
+<header id="header">
+    <nav class="danhSachMenu">
+        <!-- Logo -->
+        <div class="cum-logo">
+            <a href="#" class="logo" onclick="event.preventDefault(); switchView('home');">Lux<span>Decor</span></a>
+        </div>
+
+        <!-- Menu giữa -->
+        <ul class="cum-giua">
+            <li><a href="#" class="nav-link active" data-view="home"><i class="fas fa-home"></i> Trang Chủ</a></li>
+            <li><a href="#" class="nav-link" data-view="collection"><i class="fas fa-th-large"></i> Bộ Sưu Tập</a></li>
+        </ul>
+
+        <!-- Cụm phải -->
+        <div class="cum-phai">
+            <!-- Tìm kiếm -->
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" placeholder="Tìm sản phẩm..." id="searchInput">
+            </div>
+
+            <!-- Giỏ hàng -->
+            <a href="#" class="giohang-btn" id="cartBtn" title="Giỏ hàng">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-badge" id="cartCount">0</span>
+            </a>
+
+            <!-- User menu -->
+            <div class="user-menu-wrapper">
+                <!-- Chưa đăng nhập -->
+                <a href="#" class="user-btn" id="loginBtn" title="Đăng nhập">
+                    <i class="fas fa-user"></i>
+                </a>
+
+                <!-- Đã đăng nhập -->
+                <div class="user-logged-in" id="userLoggedIn" style="display:none;">
+                    <a href="#" class="user-btn user-btn-active" id="userDropdownBtn">
+                        <i class="fas fa-user-check"></i>
+                    </a>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <i class="fas fa-crown"></i>
+                            <span id="dropdownUsername">User</span>
+                        </div>
+                        <a href="#" id="viewOrdersBtn"><i class="fas fa-receipt"></i> Đơn hàng của tôi</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu button -->
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+</header>

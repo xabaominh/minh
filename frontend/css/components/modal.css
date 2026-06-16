@@ -1,0 +1,396 @@
+/* =====================================================
+   LuxDecor — Auth Modal & Product Modal
+   ===================================================== */
+
+.auth-modal,
+.product-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s ease;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+}
+
+.auth-modal.active,
+.product-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Auth Modal Content */
+.auth-content {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 0;
+    box-shadow: var(--shadow-lg);
+    transform: scale(0.9) translateY(30px);
+    transition: transform 0.35s ease;
+}
+
+.auth-modal.active .auth-content {
+    transform: scale(1) translateY(0);
+}
+
+.close-auth {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    z-index: 10;
+    transition: var(--transition);
+    line-height: 1;
+}
+
+.close-auth:hover {
+    color: var(--accent);
+    transform: rotate(90deg);
+}
+
+/* Auth Tabs */
+.auth-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 16px;
+    background: none;
+    border: none;
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.auth-tab.active {
+    color: var(--accent);
+}
+
+.auth-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+}
+
+/* Auth Form */
+.auth-form {
+    padding: 28px 30px 30px;
+}
+
+.auth-form-icon {
+    text-align: center;
+    font-size: 2.2rem;
+    color: var(--accent);
+    margin-bottom: 12px;
+}
+
+.auth-form h3 {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--text-dark);
+    margin-bottom: 24px;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-body);
+    margin-bottom: 6px;
+}
+
+.form-group label i {
+    color: var(--accent);
+    margin-right: 4px;
+    width: 16px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-family: var(--font);
+    color: var(--text-dark);
+    background: var(--bg-body);
+    transition: var(--transition);
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.checkout-summary {
+    background: var(--bg-body);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+    margin: 16px 0 8px;
+    border: 1px solid var(--border);
+}
+
+.checkout-summary strong {
+    color: var(--accent);
+    font-size: 1.3rem;
+}
+
+/* Product Modal Content */
+.product-modal-content {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 30px;
+    box-shadow: var(--shadow-lg);
+    transform: scale(0.9) translateY(30px);
+    transition: transform 0.35s ease;
+}
+
+.product-modal.active .product-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.close-product {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    z-index: 10;
+    transition: var(--transition);
+    line-height: 1;
+}
+
+.close-product:hover {
+    color: var(--accent);
+    transform: rotate(90deg);
+}
+
+/* Product Detail Layout */
+.product-detail-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.product-detail-images {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.main-image-wrapper {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.main-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.gallery-images {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.gallery-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    border: 2px solid transparent;
+    cursor: pointer;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.gallery-thumb:hover {
+    opacity: 0.8;
+}
+
+.gallery-thumb.active {
+    border-color: var(--accent);
+}
+
+.product-detail-info h2 {
+    font-size: 1.8rem;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.product-detail-category {
+    display: inline-block;
+    background: rgba(201, 168, 76, 0.15);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.product-detail-price {
+    font-size: 1.6rem;
+    color: var(--accent);
+    font-weight: 800;
+    margin-bottom: 25px;
+}
+
+.product-detail-desc {
+    color: var(--text-body);
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.product-specs {
+    margin-bottom: 30px;
+    background: var(--bg-body);
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.product-specs p {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.product-specs p:last-child {
+    margin-bottom: 0;
+}
+
+.product-specs strong {
+    color: var(--text-dark);
+    display: inline-block;
+    width: 120px;
+}
+
+.product-detail-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.product-qty-selector {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.product-qty-btn {
+    background: var(--bg-body);
+    border: none;
+    width: 40px;
+    height: 48px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-dark);
+}
+
+.product-qty-btn:hover {
+    background: #e0e0e0;
+}
+
+.product-qty-input {
+    width: 50px;
+    height: 48px;
+    border: none;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.product-add-btn {
+    flex: 1;
+    height: 48px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.product-add-btn:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--accent-glow);
+}
+
+.product-add-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Responsive Modals */
+@media (max-width: 768px) {
+    .auth-content {
+        width: 95%;
+        max-width: 400px;
+    }
+
+    .auth-form {
+        padding: 20px 22px 24px;
+    }
+
+    .product-detail-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}

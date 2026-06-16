@@ -1,0 +1,28 @@
+<!-- ===== CHECKOUT MODAL COMPONENT ===== -->
+<div class="auth-modal" id="checkoutModal">
+    <div class="auth-content">
+        <button class="close-auth" id="closeCheckoutBtn">&times;</button>
+        <form id="checkoutForm" class="auth-form">
+            <div class="auth-form-icon"><i class="fas fa-truck"></i></div>
+            <h3>Xác Nhận Đặt Hàng</h3>
+            <div class="checkout-summary">
+                <p>Tổng cộng</p>
+                <strong id="checkoutTotal">0 ₫</strong>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng *</label>
+                <input type="text" id="checkoutAddress" required placeholder="Nhập địa chỉ nhận hàng">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-credit-card"></i> Phương thức thanh toán</label>
+                <select id="checkoutPayment">
+                    <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                    <option value="BANK_TRANSFER">Chuyển khoản ngân hàng</option>
+                </select>
+            </div>
+            <button type="submit" class="auth-submit-btn checkout-confirm-btn" id="confirmOrderBtn">
+                <i class="fas fa-check-circle"></i> Xác Nhận Đặt Hàng
+            </button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+/* =====================================================
+   LuxDecor — Main CSS Entry Point
+   Import tất cả modules theo đúng thứ tự
+   ===================================================== */
+
+/* Base */
+@import 'variables.css';
+@import 'layout.css';
+@import 'animations.css';
+
+/* Components */
+@import 'components/header.css';
+@import 'components/footer.css';
+@import 'components/buttons.css';
+@import 'components/modal.css';
+@import 'components/cart.css';
+@import 'components/notifications.css';
+
+/* Pages */
+@import 'pages/home.css';
+@import 'pages/collection.css';
+@import 'pages/orders.css';
