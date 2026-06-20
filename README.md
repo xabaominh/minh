@@ -1,26 +1,28 @@
-# Hướng Dẫn Cài Đặt Dự Án LuxDecor (Kiến trúc Modular)
+# 🛋️ Hướng Dẫn Cài Đặt Dự Án LuxDecor (Production-Ready)
 
-Dự án đã được tái cấu trúc thành một Single Page Application (SPA) với Frontend tách biệt hoàn toàn khỏi Backend.
+Dự án đã được tái cấu trúc thành một **Single Page Application (SPA)** với Frontend tách biệt hoàn toàn khỏi Backend. Gần đây, hệ thống cơ sở dữ liệu đã được tối ưu hóa theo tiêu chuẩn thực tế (Production-Ready) dành cho các hệ thống thương mại điện tử.
 
-## 1. Yêu cầu hệ thống
-- **MySQL/MariaDB** (ví dụ: XAMPP, WAMP, MySQL Workbench)
-- **Python 3.8+**
-- **Trình duyệt web hiện đại** (Chrome, Edge, Firefox, Safari)
-
----
-
-## 2. Cài đặt Cơ sở dữ liệu (MySQL)
-1. Mở công cụ quản lý MySQL (phpMyAdmin, MySQL Workbench, DBeaver...).
-2. Mở và chạy file `backend/migrations/schema.sql` để tạo database `furniture_shop` và các bảng.
-3. Mở và chạy file `backend/migrations/seed.sql` để chèn dữ liệu mẫu (sản phẩm, danh mục, users).
-
-> **Lưu ý:** User mẫu:
-> - Admin: `admin` / `123456`
-> - User: `user1` / `123456`
+## 🛠️ 1. Yêu cầu hệ thống
+- **Cơ sở dữ liệu:** MySQL/MariaDB (khuyến nghị XAMPP, WAMP, MySQL Workbench hoặc DBeaver).
+- **Backend:** Python 3.8+
+- **Frontend:** Trình duyệt web hiện đại (Chrome, Edge, Firefox, Safari).
 
 ---
 
-## 3. Cài đặt Backend (Flask)
+## 🗄️ 2. Cài đặt Cơ sở dữ liệu (MySQL)
+Cơ sở dữ liệu đã được chuẩn hóa để bao gồm: Quản lý địa chỉ giao hàng (user_addresses), Lịch sử thanh toán (payments), Mã giảm giá (coupons), Đánh giá (reviews), và Sản phẩm yêu thích (wishlist).
+
+1. Mở công cụ quản lý MySQL của bạn.
+2. Mở và chạy file `backend/migrations/schema.sql` để tạo database `furniture_shop` và cấu trúc các bảng mới nhất.
+3. Mở và chạy file `backend/migrations/seed.sql` để chèn dữ liệu mẫu (sản phẩm, danh mục, users...).
+
+> **Lưu ý:** User mẫu có sẵn:
+> - **Admin:** `admin` / `123456`
+> - **User:** `user1` / `123456`
+
+---
+
+## ⚙️ 3. Cài đặt Backend (Flask)
 1. Mở Terminal/Command Prompt, di chuyển vào thư mục `backend`.
 2. Tạo Virtual Environment (Khuyến nghị):
    ```bash
@@ -42,11 +44,11 @@ Dự án đã được tái cấu trúc thành một Single Page Application (SP
    ```bash
    python app.py
    ```
-   > Backend sẽ chạy tại: `http://127.0.0.1:5000`
+   > Backend API sẽ chạy tại: `http://127.0.0.1:5000`
 
 ---
 
-## 4. Chạy Frontend
+## 🎨 4. Chạy Frontend
 Vì Frontend là SPA thuần tĩnh load component động (fetch HTML), bạn **không thể** mở file `index.html` trực tiếp bằng cách click đúp (lỗi CORS do giao thức `file://`).
 
 Bạn cần serve thư mục `frontend` bằng một HTTP Server tĩnh.
@@ -66,27 +68,29 @@ Bạn cần serve thư mục `frontend` bằng một HTTP Server tĩnh.
 
 ---
 
-## 5. Danh sách API Endpoints
+## 🔌 5. Danh sách API Endpoints Cơ Bản
 
 **Auth**
-- `POST /api/register`
-- `POST /api/login`
-- `POST /api/logout`
-- `GET /api/profile`
+- `POST /api/register`: Đăng ký (Hỗ trợ lưu nhiều địa chỉ qua `user_addresses`)
+- `POST /api/login`: Đăng nhập
+- `POST /api/logout`: Đăng xuất
+- `GET /api/profile`: Lấy thông tin cá nhân
 
 **Products**
-- `GET /api/categories`
-- `GET /api/products?category_id=X&search=Y&limit=Z`
-- `GET /api/products/<id>`
+- `GET /api/categories`: Danh mục (hỗ trợ slug)
+- `GET /api/products?category_id=X&search=Y&limit=Z`: Danh sách sản phẩm (có SKU, attributes JSON)
+- `GET /api/products/<id>`: Chi tiết sản phẩm
 
-**Cart** (Yêu cầu đăng nhập)
+**Cart** (Hỗ trợ session/đăng nhập)
 - `GET /api/cart`
 - `POST /api/cart/add`
 - `PUT /api/cart/update`
 - `DELETE /api/cart/remove/<id>`
 - `POST /api/cart/merge`
 
-**Orders** (Yêu cầu đăng nhập)
-- `POST /api/orders`
-- `GET /api/orders`
-- `GET /api/orders/<id>`
+**Orders & Payments** (Yêu cầu đăng nhập)
+- `POST /api/orders`: Tạo đơn (chốt order_items giá tĩnh, thêm bản ghi payments)
+- `GET /api/orders`: Lịch sử mua hàng
+- `GET /api/orders/<id>`: Chi tiết đơn hàng
+
+*(Các endpoint cho tính năng mở rộng như wishlist, coupons, reviews sẽ tiếp tục được bổ sung thêm)*

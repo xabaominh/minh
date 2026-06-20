@@ -39,12 +39,20 @@ def register_user(data):
         # Tạo user
         pw_hash = generate_password_hash(password)
         cursor.execute(
-            "INSERT INTO users (username, email, password_hash, full_name, phone, address) VALUES (%s,%s,%s,%s,%s,%s)",
-            (username, email, pw_hash, full_name or None, phone or None, address or None)
+            "INSERT INTO users (username, email, password_hash, full_name, phone) VALUES (%s,%s,%s,%s,%s)",
+            (username, email, pw_hash, full_name or None, phone or None)
         )
+        user_id = cursor.lastrowid
+        
+        # Thêm địa chỉ
+        if address:
+            cursor.execute(
+                "INSERT INTO user_addresses (user_id, receiver_name, phone, address_line, is_default) VALUES (%s,%s,%s,%s,%s)",
+                (user_id, full_name or username, phone or '', address, True)
+            )
+            
         conn.commit()
 
-        user_id = cursor.lastrowid
         user = {
             "id": user_id,
             "username": username,
@@ -55,6 +63,8 @@ def register_user(data):
         return user, None, 201
 
     except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
         print(f"Register Error: {err}")
         return None, "Lỗi hệ thống", 500
     finally:
@@ -110,7 +120,12 @@ def get_profile(user_id):
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT id, username, email, full_name, phone, address, role FROM users WHERE id = %s",
+            """
+            SELECT u.id, u.username, u.email, u.full_name, u.phone, u.role, a.address_line AS address
+            FROM users u
+            LEFT JOIN user_addresses a ON u.id = a.user_id AND a.is_default = TRUE
+            WHERE u.id = %s
+            """,
             (user_id,)
         )
         user = cursor.fetchone()

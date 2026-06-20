@@ -5,10 +5,10 @@ from utils.helpers import decimal_to_float
 
 def _get_or_create_cart(cursor, conn, user_id):
     """Tìm hoặc tạo cart cho user. Trả về cart_id."""
-    cursor.execute("SELECT id FROM cart WHERE user_id = %s", (user_id,))
+    cursor.execute("SELECT id FROM carts WHERE user_id = %s", (user_id,))
     cart = cursor.fetchone()
     if not cart:
-        cursor.execute("INSERT INTO cart (user_id) VALUES (%s)", (user_id,))
+        cursor.execute("INSERT INTO carts (user_id) VALUES (%s)", (user_id,))
         conn.commit()
         return cursor.lastrowid
     return cart['id']
@@ -25,7 +25,7 @@ def get_cart(user_id):
         cursor.execute("""
             SELECT ci.id AS item_id, ci.quantity,
                    p.id AS product_id, p.product_name, p.price, p.thumbnail_url, p.stock_quantity
-            FROM cart c
+            FROM carts c
             JOIN cart_items ci ON c.id = ci.cart_id
             JOIN products p ON ci.product_id = p.id
             WHERE c.user_id = %s
@@ -102,7 +102,7 @@ def update_item(user_id, item_id, quantity):
         # Xác minh item thuộc user
         cursor.execute("""
             SELECT ci.id FROM cart_items ci
-            JOIN cart c ON ci.cart_id = c.id
+            JOIN carts c ON ci.cart_id = c.id
             WHERE ci.id = %s AND c.user_id = %s
         """, (item_id, user_id))
 
@@ -137,7 +137,7 @@ def remove_item(user_id, item_id):
 
         cursor.execute("""
             SELECT ci.id FROM cart_items ci
-            JOIN cart c ON ci.cart_id = c.id
+            JOIN carts c ON ci.cart_id = c.id
             WHERE ci.id = %s AND c.user_id = %s
         """, (item_id, user_id))
 

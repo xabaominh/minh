@@ -23,7 +23,7 @@ def create_order(user_id, payment_method, shipping_address):
         # Lấy giỏ hàng
         cursor.execute("""
             SELECT ci.id AS item_id, ci.quantity, p.id AS product_id, p.price, p.stock_quantity, p.product_name
-            FROM cart c
+            FROM carts c
             JOIN cart_items ci ON c.id = ci.cart_id
             JOIN products p ON ci.product_id = p.id
             WHERE c.user_id = %s
@@ -43,16 +43,22 @@ def create_order(user_id, payment_method, shipping_address):
 
         # Tạo đơn hàng
         cursor.execute(
-            "INSERT INTO orders (user_id, total_amount, payment_method, shipping_address) VALUES (%s,%s,%s,%s)",
-            (user_id, total, payment_method, shipping_address)
+            "INSERT INTO orders (user_id, total_amount, discount_amount, final_amount, order_status, shipping_address) VALUES (%s,%s,%s,%s,%s,%s)",
+            (user_id, total, 0, total, 'PENDING', shipping_address)
         )
         order_id = cursor.lastrowid
+
+        # Insert vào payments table
+        cursor.execute(
+            "INSERT INTO payments (order_id, payment_method, amount) VALUES (%s,%s,%s)",
+            (order_id, payment_method, total)
+        )
 
         # Tạo order_items + trừ stock
         for item in cart_items:
             cursor.execute(
-                "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (%s,%s,%s,%s)",
-                (order_id, item['product_id'], item['quantity'], item['price'])
+                "INSERT INTO order_items (order_id, product_id, product_name, quantity, price) VALUES (%s,%s,%s,%s,%s)",
+                (order_id, item['product_id'], item['product_name'], item['quantity'], item['price'])
             )
             cursor.execute(
                 "UPDATE products SET stock_quantity = stock_quantity - %s WHERE id = %s",
@@ -60,7 +66,7 @@ def create_order(user_id, payment_method, shipping_address):
             )
 
         # Xóa giỏ hàng
-        cursor.execute("SELECT id FROM cart WHERE user_id = %s", (user_id,))
+        cursor.execute("SELECT id FROM carts WHERE user_id = %s", (user_id,))
         cart = cursor.fetchone()
         if cart:
             cursor.execute("DELETE FROM cart_items WHERE cart_id = %s", (cart['id'],))
@@ -90,8 +96,10 @@ def get_user_orders(user_id):
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute("""
-            SELECT id, total_amount, payment_method, order_status, shipping_address, created_at
-            FROM orders WHERE user_id = %s ORDER BY created_at DESC
+            SELECT o.id, o.total_amount, p.payment_method, o.order_status, o.shipping_address, o.created_at
+            FROM orders o
+            LEFT JOIN payments p ON o.id = p.order_id
+            WHERE o.user_id = %s ORDER BY o.created_at DESC
         """, (user_id,))
         orders = cursor.fetchall()
 
@@ -126,9 +134,9 @@ def get_order_detail(user_id, order_id):
             return None, "Không tìm thấy đơn hàng"
 
         cursor.execute("""
-            SELECT oi.*, p.product_name, p.thumbnail_url
+            SELECT oi.*, p.thumbnail_url
             FROM order_items oi
-            JOIN products p ON oi.product_id = p.id
+            LEFT JOIN products p ON oi.product_id = p.id
             WHERE oi.order_id = %s
         """, (order_id,))
         items = cursor.fetchall()
