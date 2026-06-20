@@ -1,12 +1,14 @@
 <!-- ===== HOME VIEW ===== -->
 <!-- Banner -->
 <section class="anhbia">
-    <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Nội thất phòng khách cao cấp" loading="lazy">
+    <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+        alt="Nội thất phòng khách cao cấp" loading="lazy">
     <div class="banner-overlay"></div>
     <div class="noi-dung-banner">
         <span class="banner-tag">BST MỚI 2026</span>
         <h1 class="tieu-de-welcome">Nâng Tầm Không Gian<br>Sống <span>Đẳng Cấp</span></h1>
-        <p class="mo-ta-sub">Khám phá bộ sưu tập nội thất tinh tế, nơi nghệ thuật thiết kế hòa quyện cùng chất liệu cao cấp, mang đến sự sang trọng hoàn mỹ cho ngôi nhà của bạn.</p>
+        <p class="mo-ta-sub">Khám phá bộ sưu tập nội thất tinh tế, nơi nghệ thuật thiết kế hòa quyện cùng chất liệu cao
+            cấp, mang đến sự sang trọng hoàn mỹ cho ngôi nhà của bạn.</p>
         <div class="banner-buttons">
             <a href="#" class="shop-now-btn" onclick="event.preventDefault(); switchView('collection');">
                 <i class="fas fa-shopping-bag"></i> Mua Sắm Ngay
@@ -15,6 +17,33 @@
                 Tìm Hiểu Thêm
             </a>
         </div>
+    </div>
+</section>
+
+<!-- Products Grid -->
+<section class="products-section" id="products">
+    <div class="cacmathang">
+        <div>
+            <h3 class="section-subtitle">XU HƯỚNG MỚI</h3>
+            <h1>Sản Phẩm Nổi Bật</h1>
+        </div>
+        <a href="#" class="view-all-btn" onclick="event.preventDefault(); switchView('collection');">
+            Xem tất cả <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    <div class="danh-sach-san-pham" id="productList">
+        <!-- JS load sản phẩm vào đây -->
+    </div>
+</section>
+
+<!-- Categories -->
+<section class="categories-section">
+    <div class="muasamtheodanhmuc">
+        <h3 class="section-subtitle">DANH MỤC SẢN PHẨM</h3>
+        <h1>Không Gian Sống Hoàn Mỹ</h1>
+    </div>
+    <div class="danhsachdanhmuc" id="categoryList">
+        <!-- JS load danh mục vào đây -->
     </div>
 </section>
 
@@ -40,32 +69,5 @@
                 <p>Tư vấn thiết kế 3D miễn phí, bảo hành bảo trì trọn đời, hỗ trợ khách hàng 24/7.</p>
             </div>
         </div>
-    </div>
-</section>
-
-<!-- Categories -->
-<section class="categories-section">
-    <div class="muasamtheodanhmuc">
-        <h3 class="section-subtitle">DANH MỤC SẢN PHẨM</h3>
-        <h1>Không Gian Sống Hoàn Mỹ</h1>
-    </div>
-    <div class="danhsachdanhmuc" id="categoryList">
-        <!-- JS load danh mục vào đây -->
-    </div>
-</section>
-
-<!-- Products Grid -->
-<section class="products-section" id="products">
-    <div class="cacmathang">
-        <div>
-            <h3 class="section-subtitle">XU HƯỚNG MỚI</h3>
-            <h1>Sản Phẩm Nổi Bật</h1>
-        </div>
-        <a href="#" class="view-all-btn" onclick="event.preventDefault(); switchView('collection');">
-            Xem tất cả <i class="fas fa-arrow-right"></i>
-        </a>
-    </div>
-    <div class="danh-sach-san-pham" id="productList">
-        <!-- JS load sản phẩm vào đây -->
     </div>
 </section>
