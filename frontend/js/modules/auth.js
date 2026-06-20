@@ -5,6 +5,7 @@
 import { API_BASE, state } from '../state.js';
 import { showNotification } from './cart.js';
 import { switchView } from '../router.js';
+import { isManagementUser } from '../roles.js';
 
 export async function checkAuth() {
     try {
@@ -23,6 +24,7 @@ export function updateAuthUI() {
     const loginBtn = document.getElementById('loginBtn');
     const loggedIn = document.getElementById('userLoggedIn');
     const dropdownName = document.getElementById('dropdownUsername');
+    const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 
     if (!loginBtn || !loggedIn) return;
 
@@ -30,9 +32,13 @@ export function updateAuthUI() {
         loginBtn.style.display = 'none';
         loggedIn.style.display = 'block';
         if (dropdownName) dropdownName.textContent = state.currentUser.full_name || state.currentUser.username;
+        if (adminDashboardBtn) {
+            adminDashboardBtn.style.display = isManagementUser(state.currentUser) ? 'block' : 'none';
+        }
     } else {
         loginBtn.style.display = 'block';
         loggedIn.style.display = 'none';
+        if (adminDashboardBtn) adminDashboardBtn.style.display = 'none';
     }
 }
 
@@ -86,6 +92,9 @@ export function setupAuth() {
                 const { mergeLocalCart, syncCartFromServer } = await import('./cart.js');
                 await mergeLocalCart();
                 await syncCartFromServer();
+                if (isManagementUser(state.currentUser)) {
+                    await switchView('admin');
+                }
             } else {
                 showNotification(data.error, 'error');
             }
@@ -161,7 +170,14 @@ export function setupAuth() {
         updateAuthUI();
         document.getElementById('userDropdown')?.classList.remove('show');
         showNotification('Đã đăng xuất', 'info');
-        if (state.currentView === 'orders') switchView('home');
+        if (state.currentView === 'orders' || state.currentView === 'admin') switchView('home');
+    });
+
+    // Trang quản lý
+    document.getElementById('adminDashboardBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('userDropdown')?.classList.remove('show');
+        switchView('admin');
     });
 
     // Xem đơn hàng

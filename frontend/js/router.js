@@ -3,6 +3,7 @@
 // =====================================================
 
 import { state } from './state.js';
+import { isManagementUser } from './roles.js';
 
 /**
  * Load một HTML component vào một slot trong DOM.
@@ -27,6 +28,10 @@ export async function loadComponent(slotId, path) {
  * @param {number|null} filterCategoryId - ID danh mục để lọc (cho collection)
  */
 export async function switchView(viewName, filterCategoryId = null) {
+    if (viewName === 'admin' && !isManagementUser(state.currentUser)) {
+        viewName = 'home';
+    }
+
     state.currentView = viewName;
 
     const viewSlot = document.getElementById('view-slot');
@@ -54,6 +59,17 @@ export async function switchView(viewName, filterCategoryId = null) {
     window.dispatchEvent(new CustomEvent('viewChanged', {
         detail: { viewName, filterCategoryId }
     }));
+
+    // Quản lý hiển thị Header/Footer (Tách biệt Admin Layout)
+    const headerSlot = document.getElementById('header-slot');
+    const footerSlot = document.getElementById('footer-slot');
+    if (viewName === 'admin') {
+        if (headerSlot) headerSlot.style.display = 'none';
+        if (footerSlot) footerSlot.style.display = 'none';
+    } else {
+        if (headerSlot) headerSlot.style.display = 'block';
+        if (footerSlot) footerSlot.style.display = 'block';
+    }
 
     window.scrollTo(0, 0);
     window.dispatchEvent(new Event('scroll'));

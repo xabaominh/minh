@@ -7,6 +7,8 @@ import { state } from './state.js';
 import { loadComponent, switchView, setupNavigation } from './router.js';
 import { checkAuth, setupAuth, updateAuthUI } from './modules/auth.js';
 import { setupCart, updateCartUI, syncCartFromServer, setupCheckout } from './modules/cart.js';
+import { loadAdminDashboard } from './modules/admin.js';
+import { isManagementUser } from './roles.js';
 import {
     loadCategoriesData, renderCategoryButtons, loadProducts, loadAllProducts,
     setupSearch, setupSorting, setupPriceFilter, setupProductModal, setupScrollReveal
@@ -30,6 +32,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. Kiểm tra đăng nhập
     await checkAuth();
+    if (isManagementUser(state.currentUser)) {
+        await switchView('admin');
+        await loadAdminDashboard();
+    }
 
     // 4. Load data
     await loadCategoriesData();
@@ -84,6 +90,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (viewName === 'orders') {
             loadOrders();
+        }
+
+        if (viewName === 'admin') {
+            loadAdminDashboard();
         }
     });
 

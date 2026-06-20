@@ -22,7 +22,7 @@ def get_categories():
             conn.close()
 
 
-def get_products(category_id=None, search=None, limit=None):
+def get_products(category_id=None, search=None, limit=None, include_inactive=False):
     """Lấy danh sách sản phẩm với bộ lọc tùy chọn."""
     conn = None
     cursor = None
@@ -36,8 +36,11 @@ def get_products(category_id=None, search=None, limit=None):
                    p.is_active, c.id AS category_id, c.category_name, c.slug AS category_slug
             FROM products p
             JOIN categories c ON p.category_id = c.id
-            WHERE p.is_active = TRUE AND p.deleted_at IS NULL
+            WHERE p.deleted_at IS NULL
         """
+        if not include_inactive:
+            query += " AND p.is_active = TRUE"
+
         params = []
 
         if category_id:
@@ -113,6 +116,122 @@ def get_product_detail(product_id):
     except mysql.connector.Error as err:
         print(f"Product Detail Error: {err}")
         return None, "Lỗi truy vấn"
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def create_product(data):
+    """Tạo sản phẩm mới."""
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        query = """
+            INSERT INTO products (
+                sku, product_name, slug, category_id, price, discount_price, 
+                stock_quantity, thumbnail_url, description, is_active
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        
+        # Simple slug generation if not provided
+        import re
+        slug = data.get('slug')
+        if not slug and data.get('product_name'):
+            slug = re.sub(r'[^a-z0-9]+', '-', data.get('product_name').lower()).strip('-')
+
+        params = (
+            data.get('sku'),
+            data.get('product_name'),
+            slug,
+            data.get('category_id'),
+            data.get('price'),
+            data.get('discount_price'),
+            data.get('stock_quantity', 0),
+            data.get('thumbnail_url'),
+            data.get('description'),
+            data.get('is_active', True)
+        )
+
+        cursor.execute(query, params)
+        conn.commit()
+        return cursor.lastrowid, None
+    except mysql.connector.Error as err:
+        print(f"Create Product Error: {err}")
+        return None, "Không thể tạo sản phẩm. Vui lòng kiểm tra SKU hoặc Slug có bị trùng lặp không."
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def update_product(product_id, data):
+    """Cập nhật sản phẩm."""
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        updates = []
+        params = []
+
+        # Allow updating specific fields
+        fields = ['sku', 'product_name', 'slug', 'category_id', 'price', 
+                  'discount_price', 'stock_quantity', 'thumbnail_url', 
+                  'description', 'is_active']
+                  
+        for field in fields:
+            if field in data:
+                updates.append(f"{field} = %s")
+                params.append(data[field])
+
+        if not updates:
+            return False, "Không có dữ liệu cập nhật"
+
+        query = f"UPDATE products SET {', '.join(updates)} WHERE id = %s"
+        params.append(product_id)
+
+        cursor.execute(query, tuple(params))
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            return False, "Sản phẩm không tồn tại hoặc dữ liệu không thay đổi"
+            
+        return True, None
+    except mysql.connector.Error as err:
+        print(f"Update Product Error: {err}")
+        return False, "Không thể cập nhật sản phẩm. Vui lòng kiểm tra lại thông tin."
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def delete_product(product_id):
+    """Xóa mềm sản phẩm (soft delete)."""
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = %s", (product_id,))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            return False, "Sản phẩm không tồn tại"
+            
+        return True, None
+    except mysql.connector.Error as err:
+        print(f"Delete Product Error: {err}")
+        return False, "Không thể xóa sản phẩm"
     finally:
         if cursor:
             cursor.close()
