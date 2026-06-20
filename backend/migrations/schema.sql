@@ -123,6 +123,8 @@ CREATE TABLE orders (
     discount_amount DECIMAL(12,2) DEFAULT 0,
     final_amount DECIMAL(12,2) NOT NULL,
     order_status ENUM('PENDING', 'CONFIRMED', 'SHIPPING', 'COMPLETED', 'CANCELLED') DEFAULT 'PENDING',
+    receiver_name VARCHAR(100),
+    receiver_phone VARCHAR(20),
     shipping_address TEXT NOT NULL,
     note TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

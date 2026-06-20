@@ -11,5 +11,6 @@ export const state = {
     currentCategoryId: '',
     currentSearch: '',
     currentView: 'home',
-    currentUser: null
+    currentUser: null,
+    userAddresses: []
 };

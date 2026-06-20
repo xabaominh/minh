@@ -5,6 +5,18 @@ from models.user import serialize_user
 from utils.validators import validate_email, validate_password, validate_required
 
 
+def _serialize_address(row):
+    if not row:
+        return None
+    return {
+        "id": row["id"],
+        "receiver_name": row.get("receiver_name"),
+        "phone": row.get("phone"),
+        "address_line": row.get("address_line"),
+        "is_default": bool(row.get("is_default"))
+    }
+
+
 def register_user(data):
     """
     Đăng ký tài khoản mới.
@@ -67,6 +79,120 @@ def register_user(data):
             conn.rollback()
         print(f"Register Error: {err}")
         return None, "Lỗi hệ thống", 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def get_user_addresses(user_id):
+    """Lấy toàn bộ địa chỉ giao hàng của user, địa chỉ mặc định đứng đầu."""
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT id, receiver_name, phone, address_line, is_default
+            FROM user_addresses
+            WHERE user_id = %s
+            ORDER BY is_default DESC, id DESC
+            """,
+            (user_id,)
+        )
+        return [_serialize_address(row) for row in cursor.fetchall()], None
+    except mysql.connector.Error as err:
+        print(f"Addresses Error: {err}")
+        return None, "Không thể lấy danh sách địa chỉ"
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def add_user_address(user_id, data):
+    """Thêm địa chỉ mới, có thể đặt làm mặc định."""
+    receiver_name = data.get('receiver_name', '').strip()
+    phone = data.get('phone', '').strip()
+    address_line = data.get('address_line', '').strip()
+    is_default = bool(data.get('is_default', False))
+
+    if not address_line:
+        return None, "Vui lòng nhập địa chỉ giao hàng", 400
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT COUNT(*) AS count FROM user_addresses WHERE user_id = %s", (user_id,))
+        has_no_address = cursor.fetchone()['count'] == 0
+        should_be_default = is_default or has_no_address
+
+        if should_be_default:
+            cursor.execute("UPDATE user_addresses SET is_default = FALSE WHERE user_id = %s", (user_id,))
+
+        cursor.execute(
+            """
+            INSERT INTO user_addresses (user_id, receiver_name, phone, address_line, is_default)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (user_id, receiver_name or "Người nhận", phone, address_line, should_be_default)
+        )
+        address_id = cursor.lastrowid
+        conn.commit()
+
+        cursor.execute(
+            """
+            SELECT id, receiver_name, phone, address_line, is_default
+            FROM user_addresses
+            WHERE id = %s AND user_id = %s
+            """,
+            (address_id, user_id)
+        )
+        return _serialize_address(cursor.fetchone()), None, 201
+    except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
+        print(f"Add Address Error: {err}")
+        return None, "Không thể thêm địa chỉ", 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def set_default_address(user_id, address_id):
+    """Đặt một địa chỉ của user làm mặc định."""
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT id FROM user_addresses WHERE id = %s AND user_id = %s",
+            (address_id, user_id)
+        )
+        if not cursor.fetchone():
+            return "Không tìm thấy địa chỉ", 404
+
+        cursor.execute("UPDATE user_addresses SET is_default = FALSE WHERE user_id = %s", (user_id,))
+        cursor.execute(
+            "UPDATE user_addresses SET is_default = TRUE WHERE id = %s AND user_id = %s",
+            (address_id, user_id)
+        )
+        conn.commit()
+        return None, 200
+    except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
+        print(f"Set Default Address Error: {err}")
+        return "Không thể đặt địa chỉ mặc định", 500
     finally:
         if cursor:
             cursor.close()

@@ -5,6 +5,15 @@
 import { API_BASE, state } from '../state.js';
 import { formatPrice } from './cart.js';
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 export async function loadOrders() {
     const container = document.getElementById('ordersContainer');
     if (!container) return;
@@ -41,7 +50,9 @@ export async function loadOrders() {
                     </span>
                 </div>
                 <div class="order-card-body">
-                    <p><i class="fas fa-map-marker-alt"></i> ${order.shipping_address}</p>
+                    <p><i class="fas fa-user"></i> ${escapeHtml(order.receiver_name || 'Người nhận')}</p>
+                    ${order.receiver_phone ? `<p><i class="fas fa-phone"></i> ${escapeHtml(order.receiver_phone)}</p>` : ''}
+                    <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(order.shipping_address)}</p>
                     <p><i class="fas fa-credit-card"></i> ${order.payment_method === 'COD' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản'}</p>
                 </div>
                 <div class="order-card-footer">

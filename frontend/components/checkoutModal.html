@@ -11,7 +11,28 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng *</label>
-                <input type="text" id="checkoutAddress" required placeholder="Nhập địa chỉ nhận hàng">
+                <select id="checkoutAddressSelect">
+                    <option value="new">Thêm địa chỉ mới</option>
+                </select>
+            </div>
+            <div class="checkout-address-list" id="checkoutAddressList"></div>
+            <div class="checkout-new-address" id="checkoutNewAddress">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Người nhận</label>
+                    <input type="text" id="checkoutReceiverName" placeholder="Tên người nhận">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Số điện thoại</label>
+                    <input type="tel" id="checkoutReceiverPhone" placeholder="0901234567">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-location-dot"></i> Địa chỉ mới *</label>
+                    <input type="text" id="checkoutAddress" placeholder="Nhập địa chỉ nhận hàng">
+                </div>
+                <label class="checkout-default-option">
+                    <input type="checkbox" id="saveNewAddressAsDefault" checked>
+                    <span>Lưu và đặt làm địa chỉ mặc định</span>
+                </label>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-credit-card"></i> Phương thức thanh toán</label>

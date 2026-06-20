@@ -1,5 +1,13 @@
 from flask import Blueprint, request, session, jsonify
-from services.auth_service import register_user, login_user, get_profile
+from middleware.auth_middleware import login_required
+from services.auth_service import (
+    register_user,
+    login_user,
+    get_profile,
+    get_user_addresses,
+    add_user_address,
+    set_default_address
+)
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -58,3 +66,31 @@ def profile():
         return jsonify({"logged_in": False}), 200
 
     return jsonify({"logged_in": True, "user": user}), 200
+
+
+@auth_bp.route('/api/addresses', methods=['GET'])
+@login_required
+def addresses():
+    items, error = get_user_addresses(session['user_id'])
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify(items), 200
+
+
+@auth_bp.route('/api/addresses', methods=['POST'])
+@login_required
+def create_address():
+    data = request.get_json(silent=True) or {}
+    address, error, status = add_user_address(session['user_id'], data)
+    if error:
+        return jsonify({"error": error}), status
+    return jsonify({"message": "Đã lưu địa chỉ", "address": address}), status
+
+
+@auth_bp.route('/api/addresses/<int:address_id>/default', methods=['PUT'])
+@login_required
+def make_default_address(address_id):
+    error, status = set_default_address(session['user_id'], address_id)
+    if error:
+        return jsonify({"error": error}), status
+    return jsonify({"message": "Đã đặt làm địa chỉ mặc định"}), 200

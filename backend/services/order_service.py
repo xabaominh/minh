@@ -4,7 +4,7 @@ from utils.helpers import decimal_to_float
 from models.order import serialize_order
 
 
-def create_order(user_id, payment_method, shipping_address):
+def create_order(user_id, payment_method, shipping_address, receiver_name='', receiver_phone=''):
     """
     Tạo đơn hàng mới từ giỏ hàng.
     Trả về (result_dict, error_message, status_code).
@@ -13,6 +13,8 @@ def create_order(user_id, payment_method, shipping_address):
         return None, "Phương thức thanh toán không hợp lệ", 400
     if not shipping_address:
         return None, "Vui lòng nhập địa chỉ giao hàng", 400
+    receiver_name = receiver_name.strip() or "Người nhận"
+    receiver_phone = receiver_phone.strip()
 
     conn = None
     cursor = None
@@ -43,8 +45,14 @@ def create_order(user_id, payment_method, shipping_address):
 
         # Tạo đơn hàng
         cursor.execute(
-            "INSERT INTO orders (user_id, total_amount, discount_amount, final_amount, order_status, shipping_address) VALUES (%s,%s,%s,%s,%s,%s)",
-            (user_id, total, 0, total, 'PENDING', shipping_address)
+            """
+            INSERT INTO orders (
+                user_id, total_amount, discount_amount, final_amount,
+                order_status, receiver_name, receiver_phone, shipping_address
+            )
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            """,
+            (user_id, total, 0, total, 'PENDING', receiver_name, receiver_phone, shipping_address)
         )
         order_id = cursor.lastrowid
 
@@ -96,7 +104,8 @@ def get_user_orders(user_id):
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute("""
-            SELECT o.id, o.total_amount, p.payment_method, o.order_status, o.shipping_address, o.created_at
+            SELECT o.id, o.total_amount, p.payment_method, o.order_status,
+                   o.receiver_name, o.receiver_phone, o.shipping_address, o.created_at
             FROM orders o
             LEFT JOIN payments p ON o.id = p.order_id
             WHERE o.user_id = %s ORDER BY o.created_at DESC

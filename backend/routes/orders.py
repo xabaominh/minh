@@ -8,11 +8,19 @@ orders_bp = Blueprint('orders', __name__)
 @orders_bp.route('/api/orders', methods=['POST'])
 @login_required
 def place_order():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     payment_method = data.get('payment_method')
     shipping_address = data.get('shipping_address', '').strip()
+    receiver_name = data.get('receiver_name', '').strip()
+    receiver_phone = data.get('receiver_phone', '').strip()
 
-    result, error, status = create_order(session['user_id'], payment_method, shipping_address)
+    result, error, status = create_order(
+        session['user_id'],
+        payment_method,
+        shipping_address,
+        receiver_name,
+        receiver_phone
+    )
     if error:
         return jsonify({"error": error}), status
 
