@@ -619,3 +619,47 @@ textarea.admin-form-control {
     border-color: var(--accent);
     color: var(--primary);
 }
+
+/* Admin Products Search Bar */
+.admin-search-bar {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+}
+
+.admin-search-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+}
+
+.admin-search-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+.admin-search-input {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    background-color: #fcfcfc;
+    color: var(--text-dark);
+    transition: var(--transition);
+}
+
+.admin-search-input:focus {
+    border-color: var(--primary);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+

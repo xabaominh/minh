@@ -103,6 +103,11 @@ async function loadAdminProducts() {
     if (!list) return;
 
     list.innerHTML = '<tr><td colspan="7" class="admin-empty">Đang tải danh sách sản phẩm...</td></tr>';
+    
+    // Clear search input on fresh load
+    const searchInput = document.getElementById('adminProductSearchInput');
+    if (searchInput) searchInput.value = '';
+
     try {
         const res = await fetch(`${API_BASE}/admin/products`, { credentials: 'include' });
         const data = await res.json();
@@ -121,7 +126,9 @@ function renderAdminProducts(products) {
     if (!list) return;
 
     if (products.length === 0) {
-        list.innerHTML = '<tr><td colspan="7" class="admin-empty">Không có sản phẩm nào.</td></tr>';
+        const searchInput = document.getElementById('adminProductSearchInput');
+        const hasQuery = searchInput && searchInput.value.trim().length > 0;
+        list.innerHTML = `<tr><td colspan="7" class="admin-empty">${hasQuery ? 'Không tìm thấy sản phẩm nào phù hợp.' : 'Không có sản phẩm nào.'}</td></tr>`;
         return;
     }
 
@@ -179,8 +186,23 @@ function setupProductModal() {
 window._adminUtils = {
     openProductModal,
     deleteProduct,
-    logoutAdmin
+    logoutAdmin,
+    searchAdminProducts
 };
+
+export function searchAdminProducts(query) {
+    const q = (query || '').toLowerCase().trim();
+    if (!q) {
+        renderAdminProducts(adminProducts);
+        return;
+    }
+    const filtered = adminProducts.filter(p => 
+        (p.product_name || '').toLowerCase().includes(q) || 
+        (p.sku || '').toLowerCase().includes(q) ||
+        (p.category_name || '').toLowerCase().includes(q)
+    );
+    renderAdminProducts(filtered);
+}
 
 async function logoutAdmin() {
     try {

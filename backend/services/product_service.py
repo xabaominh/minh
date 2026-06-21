@@ -54,8 +54,7 @@ def get_products(category_id=None, search=None, limit=None, include_inactive=Fal
         query += " ORDER BY p.id DESC"
 
         if limit:
-            query += " LIMIT %s"
-            params.append(limit)
+            query += f" LIMIT {int(limit)}"
 
         cursor.execute(query, params)
         products = cursor.fetchall()
