@@ -22,6 +22,105 @@ export function formatPrice(price) {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 }
 
+// ===== VIETQR CONFIG (Demo) =====
+const VIETQR_CONFIG = {
+    bankId: 'MB',           // Mã ngân hàng (MB Bank)
+    accountNo: '0123456789', // Số tài khoản demo
+    accountName: 'LUXDECOR FURNITURE', // Tên chủ TK
+    template: 'compact2'    // Template QR: compact, compact2, qr_only, print
+};
+
+function generateVietQRUrl(amount, orderInfo) {
+    const { bankId, accountNo, template } = VIETQR_CONFIG;
+    const params = new URLSearchParams({
+        amount: Math.round(amount),
+        addInfo: orderInfo,
+        accountName: VIETQR_CONFIG.accountName
+    });
+    return `https://img.vietqr.io/image/${bankId}-${accountNo}-${template}.png?${params.toString()}`;
+}
+
+function showVietQRResult(orderId, totalAmount) {
+    const form = document.getElementById('checkoutForm');
+    const result = document.getElementById('vietqrResult');
+    if (!form || !result) return;
+
+    const orderInfo = `DH${orderId} LuxDecor`;
+    const qrUrl = generateVietQRUrl(totalAmount, orderInfo);
+
+    // Ẩn form, hiện QR
+    form.style.display = 'none';
+    result.style.display = 'block';
+
+    // Thông tin đơn hàng
+    const infoEl = document.getElementById('vietqrOrderInfo');
+    if (infoEl) {
+        infoEl.innerHTML = `
+            <div class="info-item"><strong>Mã đơn:</strong> #${orderId}</div>
+            <div class="info-item"><strong>Số tiền:</strong> <span class="amount">${formatPrice(totalAmount)}</span></div>
+        `;
+    }
+
+    // Ảnh QR
+    const qrImg = document.getElementById('vietqrImage');
+    if (qrImg) qrImg.src = qrUrl;
+
+    // Chi tiết ngân hàng
+    const bankEl = document.getElementById('vietqrBankDetails');
+    if (bankEl) {
+        bankEl.innerHTML = `
+            <div class="detail-row">
+                <span class="label">Ngân hàng</span>
+                <span class="value">${VIETQR_CONFIG.bankId} Bank</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Số tài khoản</span>
+                <span class="value copyable" onclick="window._cart.copyText('${VIETQR_CONFIG.accountNo}')">
+                    ${VIETQR_CONFIG.accountNo} <i class="fas fa-copy"></i>
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Chủ tài khoản</span>
+                <span class="value">${VIETQR_CONFIG.accountName}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Nội dung CK</span>
+                <span class="value copyable" onclick="window._cart.copyText('${orderInfo}')">
+                    ${orderInfo} <i class="fas fa-copy"></i>
+                </span>
+            </div>
+        `;
+    }
+
+    // Nút đóng
+    document.getElementById('vietqrCloseBtn')?.addEventListener('click', () => {
+        closeCheckoutModal();
+        resetVietQRModal();
+    });
+}
+
+function resetVietQRModal() {
+    const form = document.getElementById('checkoutForm');
+    const result = document.getElementById('vietqrResult');
+    if (form) form.style.display = 'block';
+    if (result) result.style.display = 'none';
+}
+
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Đã sao chép: ' + text, 'success');
+    }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showNotification('Đã sao chép: ' + text, 'success');
+    });
+}
+
 // ===== CART SYNC =====
 export async function mergeLocalCart() {
     if (!state.currentUser || state.cart.length === 0) return;
@@ -365,13 +464,27 @@ export function closeCheckoutModal() {
 }
 
 export function setupCheckout() {
-    document.getElementById('closeCheckoutBtn')?.addEventListener('click', closeCheckoutModal);
+    document.getElementById('closeCheckoutBtn')?.addEventListener('click', () => {
+        closeCheckoutModal();
+        resetVietQRModal();
+    });
     document.getElementById('checkoutAddressSelect')?.addEventListener('change', updateCheckoutAddressMode);
+
+    // Toggle VietQR preview khi đổi phương thức thanh toán
+    document.getElementById('checkoutPayment')?.addEventListener('change', (e) => {
+        const preview = document.getElementById('vietqrPreview');
+        if (preview) {
+            preview.style.display = e.target.value === 'BANK_TRANSFER' ? 'block' : 'none';
+        }
+    });
+
     document.getElementById('checkoutForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('confirmOrderBtn');
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+
+        const paymentMethod = document.getElementById('checkoutPayment').value;
 
         try {
             const shippingInfo = await getCheckoutShippingInfo();
@@ -385,16 +498,24 @@ export function setupCheckout() {
                     shipping_address: shippingInfo.shipping_address,
                     receiver_name: shippingInfo.receiver_name,
                     receiver_phone: shippingInfo.receiver_phone,
-                    payment_method: document.getElementById('checkoutPayment').value
+                    payment_method: paymentMethod
                 })
             });
             const data = await res.json();
             if (res.ok) {
-                closeCheckoutModal();
-                showNotification(`🎉 Đặt hàng thành công! Mã đơn: #${data.order_id}`, 'success');
                 state.cart = [];
                 updateCartUI();
                 await syncCartFromServer();
+
+                if (paymentMethod === 'BANK_TRANSFER') {
+                    // Chuyển khoản → Hiện mã QR VietQR trong modal
+                    showVietQRResult(data.order_id, data.total);
+                    showNotification(`🎉 Đặt hàng thành công! Vui lòng quét mã QR để thanh toán.`, 'success');
+                } else {
+                    // COD → Đóng modal như bình thường
+                    closeCheckoutModal();
+                    showNotification(`🎉 Đặt hàng thành công! Mã đơn: #${data.order_id}`, 'success');
+                }
             } else {
                 showNotification(data.error || 'Lỗi đặt hàng', 'error');
             }
@@ -417,6 +538,7 @@ export function setupCart() {
         closeCart();
         const { closeAuthModal } = import('./auth.js').then(m => { m.closeAuthModal(); });
         closeCheckoutModal();
+        resetVietQRModal();
         closeProductModal();
     });
     document.getElementById('checkoutBtn')?.addEventListener('click', handleCheckout);
@@ -425,6 +547,7 @@ export function setupCart() {
             closeCart();
             import('./auth.js').then(m => m.closeAuthModal());
             closeCheckoutModal();
+            resetVietQRModal();
             closeProductModal();
         }
     });
@@ -440,5 +563,6 @@ function closeProductModal() {
 window._cart = {
     addToCart,
     removeFromCart,
-    changeQuantity
+    changeQuantity,
+    copyText
 };

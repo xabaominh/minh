@@ -41,9 +41,35 @@
                     <option value="BANK_TRANSFER">Chuyển khoản ngân hàng</option>
                 </select>
             </div>
+            <!-- VietQR Preview khi chọn Chuyển khoản -->
+            <div class="vietqr-preview" id="vietqrPreview" style="display: none;">
+                <div class="vietqr-info-badge">
+                    <i class="fas fa-info-circle"></i>
+                    Mã QR thanh toán sẽ hiển thị sau khi bạn xác nhận đặt hàng
+                </div>
+            </div>
             <button type="submit" class="auth-submit-btn checkout-confirm-btn" id="confirmOrderBtn">
                 <i class="fas fa-check-circle"></i> Xác Nhận Đặt Hàng
             </button>
         </form>
+        <!-- VietQR Result — hiện sau khi đặt hàng thành công với Chuyển khoản -->
+        <div class="vietqr-result" id="vietqrResult" style="display: none;">
+            <div class="vietqr-result-header">
+                <i class="fas fa-check-circle"></i>
+                <h3>Đặt Hàng Thành Công!</h3>
+                <p>Vui lòng quét mã QR bên dưới để thanh toán</p>
+            </div>
+            <div class="vietqr-order-info" id="vietqrOrderInfo"></div>
+            <div class="vietqr-qr-wrapper">
+                <img id="vietqrImage" src="" alt="VietQR Code">
+            </div>
+            <div class="vietqr-bank-details" id="vietqrBankDetails"></div>
+            <p class="vietqr-note">
+                <i class="fas fa-clock"></i> Đơn hàng sẽ được xử lý sau khi xác nhận thanh toán.
+            </p>
+            <button class="auth-submit-btn" id="vietqrCloseBtn" type="button">
+                <i class="fas fa-times"></i> Đóng
+            </button>
+        </div>
     </div>
 </div>
