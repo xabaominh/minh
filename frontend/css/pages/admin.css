@@ -663,3 +663,60 @@ textarea.admin-form-control {
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
 }
 
+/* =====================================================
+   Admin Order Management
+   ===================================================== */
+
+.admin-order-filters {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: #fbfbfd;
+}
+
+.admin-order-filter-btn {
+    padding: 7px 16px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg-white);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.admin-order-filter-btn:hover {
+    border-color: var(--primary-light);
+    color: var(--primary);
+}
+
+.admin-order-filter-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.admin-order-action-btn {
+    padding: 5px 12px;
+    border: 1.5px solid;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 3px;
+    white-space: nowrap;
+}
+
+.admin-order-action-btn:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}

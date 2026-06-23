@@ -74,3 +74,123 @@ def get_dashboard_data():
             cursor.close()
         if conn:
             conn.close()
+
+
+def get_all_orders(status_filter=None):
+    """Lấy tất cả đơn hàng cho admin."""
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT o.id, o.user_id, o.total_amount, o.discount_amount,
+                   o.final_amount, o.order_status,
+                   o.receiver_name, o.receiver_phone, o.shipping_address,
+                   o.note, o.created_at, o.updated_at,
+                   u.username, u.full_name, u.email, u.phone AS user_phone,
+                   p.payment_method, p.payment_status, p.transaction_id
+            FROM orders o
+            JOIN users u ON o.user_id = u.id
+            LEFT JOIN payments p ON o.id = p.order_id
+        """
+        params = []
+
+        if status_filter:
+            query += " WHERE o.order_status = %s"
+            params.append(status_filter.upper())
+
+        query += " ORDER BY o.created_at DESC"
+
+        cursor.execute(query, params)
+        orders = cursor.fetchall()
+
+        # Serialize dates
+        for order in orders:
+            order = _serialize_dates(order)
+
+        return decimal_to_float(orders), None
+
+    except mysql.connector.Error as err:
+        print(f"Admin Orders Error: {err}")
+        return None, "Không thể tải danh sách đơn hàng"
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def update_order_status(order_id, new_status):
+    """Cập nhật trạng thái đơn hàng."""
+    valid_statuses = ('PENDING', 'CONFIRMED', 'SHIPPING', 'COMPLETED', 'CANCELLED')
+    new_status = new_status.upper()
+
+    if new_status not in valid_statuses:
+        return False, f"Trạng thái không hợp lệ. Chấp nhận: {', '.join(valid_statuses)}", 400
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        # Kiểm tra đơn hàng tồn tại
+        cursor.execute("SELECT id, order_status FROM orders WHERE id = %s", (order_id,))
+        order = cursor.fetchone()
+
+        if not order:
+            return False, "Không tìm thấy đơn hàng", 404
+
+        current_status = order['order_status']
+
+        # Không cho phép thay đổi đơn đã hủy hoặc hoàn tất
+        if current_status in ('CANCELLED', 'COMPLETED') and new_status != current_status:
+            return False, f"Không thể thay đổi trạng thái đơn hàng đã {('hủy' if current_status == 'CANCELLED' else 'hoàn tất')}", 400
+
+        # Cập nhật trạng thái đơn hàng
+        cursor.execute(
+            "UPDATE orders SET order_status = %s WHERE id = %s",
+            (new_status, order_id)
+        )
+
+        # Nếu hoàn tất đơn -> cập nhật payment_status = SUCCESS
+        if new_status == 'COMPLETED':
+            cursor.execute(
+                "UPDATE payments SET payment_status = 'SUCCESS', paid_at = CURRENT_TIMESTAMP WHERE order_id = %s",
+                (order_id,)
+            )
+
+        # Nếu hủy đơn -> hoàn trả stock
+        if new_status == 'CANCELLED' and current_status != 'CANCELLED':
+            cursor.execute(
+                "SELECT product_id, quantity FROM order_items WHERE order_id = %s",
+                (order_id,)
+            )
+            items = cursor.fetchall()
+            for item in items:
+                cursor.execute(
+                    "UPDATE products SET stock_quantity = stock_quantity + %s WHERE id = %s",
+                    (item['quantity'], item['product_id'])
+                )
+            # Cập nhật payment_status = FAILED
+            cursor.execute(
+                "UPDATE payments SET payment_status = 'FAILED' WHERE order_id = %s",
+                (order_id,)
+            )
+
+        conn.commit()
+        return True, None, 200
+
+    except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
+        print(f"Update Order Status Error: {err}")
+        return False, "Lỗi cập nhật trạng thái đơn hàng", 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+

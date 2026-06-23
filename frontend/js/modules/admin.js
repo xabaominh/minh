@@ -93,6 +93,8 @@ function setupTabs() {
 
             if (tabId === 'products') {
                 loadAdminProducts();
+            } else if (tabId === 'orders') {
+                loadAdminOrders();
             }
         };
     });
@@ -187,7 +189,9 @@ window._adminUtils = {
     openProductModal,
     deleteProduct,
     logoutAdmin,
-    searchAdminProducts
+    searchAdminProducts,
+    filterOrders,
+    updateOrderStatus
 };
 
 export function searchAdminProducts(query) {
@@ -349,6 +353,149 @@ async function deleteProduct(productId) {
     } catch (err) {
         alert(err.message);
     }
+}
+
+// ===== ADMIN ORDERS MANAGEMENT =====
+let adminOrders = [];
+let currentOrderFilter = '';
+
+async function loadAdminOrders(statusFilter = '') {
+    const list = document.getElementById('adminOrdersList');
+    if (!list) return;
+
+    list.innerHTML = '<tr><td colspan="8" class="admin-empty">Đang tải danh sách đơn hàng...</td></tr>';
+    currentOrderFilter = statusFilter;
+
+    try {
+        let url = `${API_BASE}/admin/orders`;
+        if (statusFilter) url += `?status=${statusFilter}`;
+
+        const res = await fetch(url, { credentials: 'include' });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Lỗi tải đơn hàng');
+
+        adminOrders = data;
+        renderAdminOrders(adminOrders);
+    } catch (err) {
+        list.innerHTML = `<tr><td colspan="8" class="admin-empty error">${escapeHtml(err.message)}</td></tr>`;
+    }
+}
+
+function filterOrders(status) {
+    // Update active filter button
+    document.querySelectorAll('.admin-order-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-status') === status);
+    });
+    loadAdminOrders(status);
+}
+
+function renderAdminOrders(orders) {
+    const list = document.getElementById('adminOrdersList');
+    if (!list) return;
+
+    if (orders.length === 0) {
+        list.innerHTML = '<tr><td colspan="8" class="admin-empty">Không có đơn hàng nào.</td></tr>';
+        return;
+    }
+
+    list.innerHTML = orders.map(order => {
+        const customerName = order.full_name || order.username || 'Khách hàng';
+        const receiverInfo = order.receiver_name
+            ? `${escapeHtml(order.receiver_name)}${order.receiver_phone ? ' - ' + escapeHtml(order.receiver_phone) : ''}`
+            : escapeHtml(customerName);
+        const address = order.shipping_address
+            ? (order.shipping_address.length > 40
+                ? escapeHtml(order.shipping_address.substring(0, 40)) + '...'
+                : escapeHtml(order.shipping_address))
+            : 'N/A';
+
+        const statusOptions = buildStatusDropdown(order.id, order.order_status);
+
+        return `
+            <tr>
+                <td><strong>#${order.id}</strong></td>
+                <td>
+                    <div style="font-weight: 500;">${receiverInfo}</div>
+                    <div style="font-size: 0.8em; color: var(--text-muted);">${escapeHtml(order.email || '')}</div>
+                </td>
+                <td title="${escapeHtml(order.shipping_address || '')}">${address}</td>
+                <td>
+                    <div>${paymentText[order.payment_method] || escapeHtml(order.payment_method || 'N/A')}</div>
+                    <div style="font-size: 0.78em; color: ${getPaymentStatusColor(order.payment_status)};">
+                        ${getPaymentStatusText(order.payment_status)}
+                    </div>
+                </td>
+                <td><strong>${formatCurrency(order.final_amount || order.total_amount || 0)}</strong></td>
+                <td>
+                    <span class="admin-status ${getStatusClass(order.order_status)}">
+                        ${statusText[order.order_status] || escapeHtml(order.order_status || 'Khác')}
+                    </span>
+                </td>
+                <td style="font-size: 0.85em;">${escapeHtml(order.created_at || '')}</td>
+                <td>${statusOptions}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function buildStatusDropdown(orderId, currentStatus) {
+    if (currentStatus === 'COMPLETED' || currentStatus === 'CANCELLED') {
+        return `<span style="font-size: 0.82em; color: var(--text-muted); font-style: italic;">Đã kết thúc</span>`;
+    }
+
+    const transitions = {
+        'PENDING': [{ value: 'CONFIRMED', label: 'Xác nhận', icon: 'fa-check', color: '#3498db' }, { value: 'CANCELLED', label: 'Hủy', icon: 'fa-times', color: '#e74c3c' }],
+        'CONFIRMED': [{ value: 'SHIPPING', label: 'Giao hàng', icon: 'fa-truck', color: '#9b59b6' }, { value: 'CANCELLED', label: 'Hủy', icon: 'fa-times', color: '#e74c3c' }],
+        'SHIPPING': [{ value: 'COMPLETED', label: 'Hoàn tất', icon: 'fa-check-double', color: '#27ae60' }]
+    };
+
+    const available = transitions[currentStatus] || [];
+    if (available.length === 0) return '';
+
+    return available.map(t => `
+        <button class="admin-order-action-btn"
+                style="color: ${t.color}; border-color: ${t.color};"
+                onclick="if(window._adminUtils) window._adminUtils.updateOrderStatus(${orderId}, '${t.value}')"
+                title="${t.label}">
+            <i class="fas ${t.icon}"></i> ${t.label}
+        </button>
+    `).join('');
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+    const statusLabels = { CONFIRMED: 'xác nhận', SHIPPING: 'giao hàng', COMPLETED: 'hoàn tất', CANCELLED: 'hủy' };
+    const label = statusLabels[newStatus] || newStatus;
+
+    if (!confirm(`Bạn có chắc muốn ${label} đơn hàng #${orderId}?`)) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/orders/${orderId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Lỗi cập nhật');
+
+        // Reload orders + dashboard
+        loadAdminOrders(currentOrderFilter);
+        loadAdminDashboard();
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+function getPaymentStatusText(status) {
+    const map = { PENDING: 'Chưa thanh toán', SUCCESS: 'Đã thanh toán', FAILED: 'Thất bại', REFUNDED: 'Hoàn tiền' };
+    return map[status] || status || '';
+}
+
+function getPaymentStatusColor(status) {
+    const map = { PENDING: '#f39c12', SUCCESS: '#27ae60', FAILED: '#e74c3c', REFUNDED: '#9b59b6' };
+    return map[status] || 'var(--text-muted)';
 }
 
 function renderSummary(summary) {

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from middleware.auth_middleware import role_required
-from services.admin_service import get_dashboard_data
+from services.admin_service import get_dashboard_data, get_all_orders, update_order_status
 from services.product_service import get_products, create_product, update_product, delete_product
 
 
@@ -65,3 +65,28 @@ def admin_delete_product(product_id):
         return jsonify({"error": error}), 500
         
     return jsonify({"message": "Xóa sản phẩm thành công"}), 200
+
+
+@admin_bp.route('/api/admin/orders', methods=['GET'])
+@role_required('ADMIN', 'MANAGER')
+def admin_get_orders():
+    status = request.args.get('status')
+    orders, error = get_all_orders(status_filter=status)
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify(orders), 200
+
+
+@admin_bp.route('/api/admin/orders/<int:order_id>/status', methods=['PUT'])
+@role_required('ADMIN', 'MANAGER')
+def admin_update_order_status(order_id):
+    data = request.json
+    if not data or not data.get('status'):
+        return jsonify({"error": "Vui lòng cung cấp trạng thái mới"}), 400
+
+    success, error, status = update_order_status(order_id, data['status'])
+    if error:
+        return jsonify({"error": error}), status
+
+    return jsonify({"message": "Cập nhật trạng thái thành công"}), 200
+

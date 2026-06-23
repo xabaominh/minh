@@ -17,6 +17,7 @@
     </div>
     <div class="admin-tabs-container">
         <button class="admin-tab-btn active" data-tab="dashboard">Tổng quan</button>
+        <button class="admin-tab-btn" data-tab="orders">Đơn hàng</button>
         <button class="admin-tab-btn" data-tab="products">Sản phẩm</button>
     </div>
 
@@ -88,6 +89,44 @@
                 </div>
             </section>
         </div>
+    </div>
+
+    <!-- TAB: ORDERS -->
+    <div class="admin-tab-content" id="tab-orders" style="display: none;">
+        <section class="admin-panel">
+            <div class="admin-panel-header flex-between">
+                <h2>Quản lý đơn hàng</h2>
+            </div>
+            <div class="admin-order-filters">
+                <button class="admin-order-filter-btn active" data-status="" onclick="if(window._adminUtils) window._adminUtils.filterOrders('')">Tất cả</button>
+                <button class="admin-order-filter-btn" data-status="PENDING" onclick="if(window._adminUtils) window._adminUtils.filterOrders('PENDING')">Chờ xử lý</button>
+                <button class="admin-order-filter-btn" data-status="CONFIRMED" onclick="if(window._adminUtils) window._adminUtils.filterOrders('CONFIRMED')">Đã xác nhận</button>
+                <button class="admin-order-filter-btn" data-status="SHIPPING" onclick="if(window._adminUtils) window._adminUtils.filterOrders('SHIPPING')">Đang giao</button>
+                <button class="admin-order-filter-btn" data-status="COMPLETED" onclick="if(window._adminUtils) window._adminUtils.filterOrders('COMPLETED')">Hoàn tất</button>
+                <button class="admin-order-filter-btn" data-status="CANCELLED" onclick="if(window._adminUtils) window._adminUtils.filterOrders('CANCELLED')">Đã hủy</button>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Khách hàng</th>
+                            <th>Địa chỉ giao</th>
+                            <th>Thanh toán</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminOrdersList">
+                        <tr>
+                            <td colspan="8" class="admin-empty">Chọn tab để xem đơn hàng</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <!-- TAB: PRODUCTS -->
