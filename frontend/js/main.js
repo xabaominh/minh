@@ -10,7 +10,8 @@ import { setupCart, updateCartUI, syncCartFromServer, setupCheckout } from './mo
 import { loadAdminDashboard } from './modules/admin.js';
 import { isManagementUser } from './roles.js';
 import {
-    loadCategoriesData, renderCategoryButtons, loadProducts, loadAllProducts,
+    loadCategoriesData,
+    renderCategoryButtons, loadProducts, loadAllProducts, applyFilters,
     setupSearch, setupSorting, setupPriceFilter, setupProductModal, setupScrollReveal
 } from './modules/products.js';
 import { loadOrders } from './modules/orders.js';
@@ -45,7 +46,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCategoriesData();
     renderCategoryButtons();
     loadProducts();
-    loadAllProducts();
 
     // 5. Setup events
     setupNavigation();
@@ -76,10 +76,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (viewName === 'collection') {
             renderCategoryButtons();
-            loadAllProducts();
-            setupSearch();
-            setupSorting();
-            setupPriceFilter();
+            if (!state.allProducts.length) {
+                loadAllProducts();
+            } else {
+                applyFilters();
+            }
             setupSidebarToggle();
 
             if (filterCategoryId !== null) {
@@ -112,6 +113,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 // =====================================================
 // UI UTILITIES
 // =====================================================
+let sidebarToggleDone = false;
+
 function hideLoadingSpinner() {
     const spinner = document.getElementById('loadingSpinner');
     if (spinner) {
@@ -125,6 +128,7 @@ function hideLoadingSpinner() {
 function setupScrollEffects() {
     const header = document.getElementById('header');
     const backToTop = document.getElementById('backToTop');
+    let ticking = false;
 
     const updateHeader = () => {
         if (!header) return;
@@ -135,13 +139,20 @@ function setupScrollEffects() {
         }
     };
 
-    window.addEventListener('scroll', () => {
-        updateHeader();
-        if (backToTop) {
-            if (window.scrollY > 500) backToTop.classList.add('visible');
-            else backToTop.classList.remove('visible');
-        }
-    });
+    const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            updateHeader();
+            if (backToTop) {
+                if (window.scrollY > 500) backToTop.classList.add('visible');
+                else backToTop.classList.remove('visible');
+            }
+            ticking = false;
+        });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     updateHeader();
     backToTop?.addEventListener('click', (e) => {
@@ -172,6 +183,8 @@ function setupMobileMenu() {
 }
 
 function setupSidebarToggle() {
+    if (sidebarToggleDone) return;
+    sidebarToggleDone = true;
     const toggleBtn = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebarPanel');
     if (toggleBtn && sidebar) {

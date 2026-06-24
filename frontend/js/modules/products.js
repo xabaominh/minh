@@ -4,6 +4,7 @@
 
 import { API_BASE, state } from '../state.js';
 import { formatPrice, showNotification, addToCart, syncCartFromServer, closeCheckoutModal } from './cart.js';
+import { optimizeProductImage } from '../imageUtils.js';
 
 // ===== CATEGORIES =====
 export async function loadCategoriesData() {
@@ -108,10 +109,12 @@ export async function loadProducts(categoryId = null, search = null) {
 
         container.innerHTML = products.map(p => {
             const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const thumb = optimizeProductImage(p.thumbnail_url);
             return `
             <div class="the-san-pham reveal-on-scroll" data-id="${p.id}">
                 <div class="product-img-wrapper" onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">
-                    <img src="${p.thumbnail_url}" alt="${p.product_name}" loading="lazy"
+                    <img src="${thumb}" alt="${p.product_name}" loading="lazy" decoding="async"
+                         width="600" height="600"
                          onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=60'">
                     <div class="product-badge">${p.category_name}</div>
                 </div>
@@ -119,7 +122,7 @@ export async function loadProducts(categoryId = null, search = null) {
                     <h3 onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">${p.product_name}</h3>
                     <p class="gia-tien">${formatPrice(p.price)}</p>
                     <button class="add-to-cart-btn"
-                            onclick="window._cart.addToCart(${p.id}, '${safeName}', ${p.price}, '${p.thumbnail_url}')">
+                            onclick="window._cart.addToCart(${p.id}, '${safeName}', ${p.price}, '${thumb}')">
                         <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
                     </button>
                 </div>
@@ -200,6 +203,7 @@ function renderCollectionProducts(products) {
 
     grid.innerHTML = products.map(p => {
         const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const thumb = optimizeProductImage(p.thumbnail_url);
         const stockHTML = `<p class="ton-kho ${p.stock_quantity > 0 ? '' : 'het-hang'}">
             <i class="fas fa-${p.stock_quantity > 0 ? 'check-circle' : 'times-circle'}"></i>
             ${p.stock_quantity > 0 ? p.stock_quantity + ' sản phẩm có sẵn' : 'Hết hàng'}
@@ -208,7 +212,8 @@ function renderCollectionProducts(products) {
         return `
         <div class="the-san-pham-doc" data-id="${p.id}">
             <div class="hinh-anh-sp-doc" onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">
-                <img src="${p.thumbnail_url}" alt="${p.product_name}" loading="lazy"
+                <img src="${thumb}" alt="${p.product_name}" loading="lazy" decoding="async"
+                     width="600" height="600"
                      onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=60'">
                 <div class="product-badge">${p.category_name}</div>
             </div>
@@ -218,7 +223,7 @@ function renderCollectionProducts(products) {
                 <p class="gia-sp">${formatPrice(p.price)}</p>
                 ${stockHTML}
                 <button class="add-to-cart-btn"
-                        onclick="window._cart.addToCart(${p.id}, '${safeName}', ${p.price}, '${p.thumbnail_url}')"
+                        onclick="window._cart.addToCart(${p.id}, '${safeName}', ${p.price}, '${thumb}')"
                         ${p.stock_quantity <= 0 ? 'disabled' : ''}>
                     <i class="fas fa-shopping-bag"></i> Thêm vào giỏ
                 </button>
@@ -230,7 +235,7 @@ function renderCollectionProducts(products) {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry, idx) => {
             if (entry.isIntersecting) {
-                setTimeout(() => entry.target.classList.add('revealed'), idx * 60);
+                setTimeout(() => entry.target.classList.add('revealed'), idx * 30);
                 observer.unobserve(entry.target);
             }
         });
@@ -265,7 +270,10 @@ export function resetFilters() {
 }
 
 // ===== SEARCH =====
+let searchSetupDone = false;
 export function setupSearch() {
+    if (searchSetupDone) return;
+    searchSetupDone = true;
     const headerSearch = document.getElementById('searchInput');
     const collectionSearch = document.getElementById('searchInputCollection');
     let debounceTimer;
@@ -303,11 +311,17 @@ export function setupSearch() {
     }
 }
 
+let sortSetupDone = false;
 export function setupSorting() {
+    if (sortSetupDone) return;
+    sortSetupDone = true;
     document.getElementById('sortSelect')?.addEventListener('change', applyFilters);
 }
 
+let priceFilterSetupDone = false;
 export function setupPriceFilter() {
+    if (priceFilterSetupDone) return;
+    priceFilterSetupDone = true;
     document.getElementById('filterPriceBtn')?.addEventListener('click', applyFilters);
     ['priceMin', 'priceMax'].forEach(id => {
         document.getElementById(id)?.addEventListener('keydown', (e) => {
@@ -342,12 +356,14 @@ export async function openProductModal(productId) {
         const res = await fetch(`${API_BASE}/products/${productId}`);
         if (!res.ok) throw new Error('API Error');
         const p = await res.json();
+        const thumb = optimizeProductImage(p.thumbnail_url);
 
         const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        let imagesHtml = `<img src="${p.thumbnail_url}" class="gallery-thumb active" onclick="window._products.changeMainImage(this, '${p.thumbnail_url}')">`;
+        let imagesHtml = `<img src="${thumb}" class="gallery-thumb active" onclick="window._products.changeMainImage(this, '${thumb}')">`;
         if (p.images && p.images.length > 0) {
             p.images.forEach(img => {
-                imagesHtml += `<img src="${img.url}" class="gallery-thumb" onclick="window._products.changeMainImage(this, '${img.url}')">`;
+                const optimized = optimizeProductImage(img.url);
+                imagesHtml += `<img src="${optimized}" class="gallery-thumb" onclick="window._products.changeMainImage(this, '${optimized}')">`;
             });
         }
 
@@ -355,7 +371,7 @@ export async function openProductModal(productId) {
             <div class="product-detail-layout">
                 <div class="product-detail-images">
                     <div class="main-image-wrapper">
-                        <img src="${p.thumbnail_url}" id="mainProductImage" alt="${p.product_name}">
+                        <img src="${thumb}" id="mainProductImage" alt="${p.product_name}" decoding="async">
                     </div>
                     <div class="gallery-images">${imagesHtml}</div>
                 </div>
@@ -376,7 +392,7 @@ export async function openProductModal(productId) {
                             <button class="product-qty-btn" onclick="window._products.changeModalQty(1)">+</button>
                         </div>
                         <button class="product-add-btn" 
-                                onclick="window._products.addToCartFromModal(${p.id}, '${safeName}', ${p.price}, '${p.thumbnail_url}')"
+                                onclick="window._products.addToCartFromModal(${p.id}, '${safeName}', ${p.price}, '${thumb}')"
                                 ${p.stock_quantity <= 0 ? 'disabled' : ''}>
                             <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
                         </button>

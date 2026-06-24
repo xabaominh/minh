@@ -5,6 +5,7 @@
 import { API_BASE, state } from '../state.js';
 import { openAuthModal } from './auth.js';
 import { phoneValidationMessage } from '../validators.js';
+import { optimizeProductImage } from '../imageUtils.js';
 
 // ===== NOTIFICATION =====
 export function showNotification(message, type = 'success') {
@@ -280,7 +281,7 @@ export function renderCartItems() {
         const changeId = isLoggedIn ? item.item_id : item.id;
         return `
         <div class="cart-item">
-            <img src="${item.image}" alt="${item.name}"
+            <img src="${optimizeProductImage(item.image)}" alt="${item.name}" loading="lazy" decoding="async"
                  onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&q=60'">
             <div class="cart-item-info">
                 <h4>${item.name}</h4>

@@ -1,15 +1,15 @@
-Sofa Góc Chữ L Nâu = https://images.pexels.com/photos/276566/pexels-photo-276566.jpeg
-Bàn Trà Gỗ Sồi = https://images.pexels.com/photos/6661224/pexels-photo-6661224.jpeg
-Kệ Tivi Gỗ Óc Chó = https://images.pexels.com/photos/1714433/pexels-photo-1714433.jpeg
-Tủ Quần Áo 3 Cánh = https://images.pexels.com/photos/27562190/pexels-photo-27562190.png
-Bàn Đầu Giường Nhỏ Gọn = https://images.pexels.com/photos/6266190/pexels-photo-6266190.jpeg
-Đèn Ngủ Để Bàn = https://images.pexels.com/photos/17994856/pexels-photo-17994856.jpeg
-Ghế Ăn Bọc Nệm Xám = https://images.pexels.com/photos/15071703/pexels-photo-15071703.jpeg
-Tủ Rượu Gỗ Sồi = https://images.pexels.com/photos/27819659/pexels-photo-27819659.jpeg
-Bàn Ăn Tròn Đá Marble = https://images.pexels.com/photos/32709576/pexels-photo-32709576.jpeg
-Đèn Bàn LED Thông Minh = https://images.pexels.com/photos/15519510/pexels-photo-15519510.jpeg
-Ghế Công Thái Học Premium = https://images.pexels.com/photos/18435547/pexels-photo-18435547.jpeg
-Kệ Sách 5 Tầng = https://images.pexels.com/photos/4440116/pexels-photo-4440116.jpeg
-Tủ Giày 4 Tầng = https://images.pexels.com/photos/37595188/pexels-photo-37595188.jpeg
-Hộp Lưu Trữ Đa Năng = https://images.pexels.com/photos/9646747/pexels-photo-9646747.jpeg
+Sofa Góc Chữ L Nâu = https://images.pexels.com/photos/276566/pexels-photo-276566.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Bàn Trà Gỗ Sồi = https://images.pexels.com/photos/6661224/pexels-photo-6661224.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Kệ Tivi Gỗ Óc Chó = https://images.pexels.com/photos/1714433/pexels-photo-1714433.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Tủ Quần Áo 3 Cánh = https://images.pexels.com/photos/27562190/pexels-photo-27562190.png?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Bàn Đầu Giường Nhỏ Gọn = https://images.pexels.com/photos/6266190/pexels-photo-6266190.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Đèn Ngủ Để Bàn = https://images.pexels.com/photos/17994856/pexels-photo-17994856.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Ghế Ăn Bọc Nệm Xám = https://images.pexels.com/photos/15071703/pexels-photo-15071703.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Tủ Rượu Gỗ Sồi = https://images.pexels.com/photos/27819659/pexels-photo-27819659.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Bàn Ăn Tròn Đá Marble = https://images.pexels.com/photos/32709576/pexels-photo-32709576.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Đèn Bàn LED Thông Minh = https://images.pexels.com/photos/15519510/pexels-photo-15519510.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Ghế Công Thái Học Premium = https://images.pexels.com/photos/18435547/pexels-photo-18435547.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Kệ Sách 5 Tầng = https://images.pexels.com/photos/4440116/pexels-photo-4440116.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Tủ Giày 4 Tầng = https://images.pexels.com/photos/37595188/pexels-photo-37595188.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
+Hộp Lưu Trữ Đa Năng = https://images.pexels.com/photos/9646747/pexels-photo-9646747.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop
 
