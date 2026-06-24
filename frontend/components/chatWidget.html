@@ -1,0 +1,28 @@
+<!-- ===== CHAT WIDGET COMPONENT ===== -->
+<div class="chat-widget" id="chatWidget">
+    <button class="chat-fab" id="chatFab" title="Chat hỗ trợ">
+        <i class="fas fa-comments"></i>
+        <span class="chat-badge" id="chatBadge" style="display:none;">0</span>
+    </button>
+
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-panel-header">
+            <div class="chat-panel-title">
+                <i class="fas fa-headset"></i>
+                <div>
+                    <strong>Hỗ trợ khách hàng</strong>
+                </div>
+            </div>
+            <button class="chat-close-btn" id="chatCloseBtn" title="Đóng">&times;</button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <form class="chat-input-area" id="chatForm">
+            <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." maxlength="2000" autocomplete="off">
+            <button type="submit" id="chatSendBtn" title="Gửi">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</div>

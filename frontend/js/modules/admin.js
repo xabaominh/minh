@@ -18,6 +18,10 @@ const paymentText = {
 
 let adminProducts = [];
 let isEditingProduct = false;
+let activeChatConvId = null;
+let adminChatLastMsgId = 0;
+let adminChatPollTimer = null;
+let adminChatConversations = [];
 
 export async function loadAdminDashboard() {
     const root = document.getElementById('adminDashboard');
@@ -48,6 +52,8 @@ export async function loadAdminDashboard() {
 
     setupTabs();
     setupProductModal();
+    setupAdminChatForm();
+    fetchAdminChatUnread();
 
     try {
         const res = await fetch(`${API_BASE}/admin/dashboard`, { credentials: 'include' });
@@ -82,7 +88,7 @@ function setupTabs() {
             });
             btn.classList.add('active');
             btn.style.fontWeight = '600';
-            btn.style.color = 'var(--primary-color)';
+            btn.style.color = 'var(--primary)';
 
             // Update active content
             const tabId = btn.getAttribute('data-tab');
@@ -95,6 +101,10 @@ function setupTabs() {
                 loadAdminProducts();
             } else if (tabId === 'orders') {
                 loadAdminOrders();
+            } else if (tabId === 'chat') {
+                loadAdminChat();
+            } else {
+                stopAdminChatPolling();
             }
         };
     });
@@ -191,8 +201,260 @@ window._adminUtils = {
     logoutAdmin,
     searchAdminProducts,
     filterOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    refreshAdminChat,
+    selectAdminConversation,
+    closeAdminConversation
 };
+
+function setupAdminChatForm() {
+    document.getElementById('adminChatForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await sendAdminChatMessage();
+    });
+}
+
+async function loadAdminChat() {
+    const list = document.getElementById('adminChatList');
+    if (!list) return;
+
+    list.innerHTML = '<div class="admin-empty" style="padding:20px;">Đang tải...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/chat/conversations?status=OPEN`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Không thể tải hội thoại');
+
+        adminChatConversations = data;
+        renderAdminChatList(data);
+        fetchAdminChatUnread();
+
+        if (activeChatConvId) {
+            const stillExists = data.some(c => c.id === activeChatConvId);
+            if (stillExists) selectAdminConversation(activeChatConvId, false);
+            else resetAdminChatThread();
+        }
+    } catch (err) {
+        list.innerHTML = `<div class="admin-empty error" style="padding:20px;">${escapeHtml(err.message)}</div>`;
+    }
+}
+
+function renderAdminChatList(conversations) {
+    const list = document.getElementById('adminChatList');
+    if (!list) return;
+
+    if (!conversations.length) {
+        list.innerHTML = '<div class="admin-empty" style="padding:20px;">Chưa có hội thoại nào.</div>';
+        return;
+    }
+
+    list.innerHTML = conversations.map(conv => {
+        const name = conv.full_name || conv.username || 'Khách hàng';
+        const preview = conv.last_message || 'Chưa có tin nhắn';
+        const unread = conv.unread_count || 0;
+        return `
+            <div class="admin-chat-conv-item ${conv.id === activeChatConvId ? 'active' : ''}"
+                 onclick="if(window._adminUtils) window._adminUtils.selectAdminConversation(${conv.id})">
+                <div class="conv-name">
+                    <span>${escapeHtml(name)}</span>
+                    ${unread > 0 ? `<span class="conv-unread">${unread}</span>` : ''}
+                </div>
+                <div class="conv-preview">${escapeHtml(preview)}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function selectAdminConversation(convId, reloadList = true) {
+    activeChatConvId = convId;
+    adminChatLastMsgId = 0;
+
+    if (reloadList) {
+        document.querySelectorAll('.admin-chat-conv-item').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.admin-chat-conv-item[onclick*="${convId}"]`)?.classList.add('active');
+    }
+
+    const container = document.getElementById('adminChatMessages');
+    if (container) container.innerHTML = '';
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/chat/conversations/${convId}`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Không thể tải tin nhắn');
+
+        const conv = data.conversation;
+        const nameEl = document.getElementById('adminChatThreadName');
+        const statusEl = document.getElementById('adminChatThreadStatus');
+        const closeBtn = document.getElementById('adminChatCloseBtn');
+        const form = document.getElementById('adminChatForm');
+
+        if (nameEl) nameEl.textContent = conv.full_name || conv.username || 'Khách hàng';
+        if (statusEl) {
+            statusEl.textContent = conv.status === 'OPEN' ? 'Đang mở' : 'Đã đóng';
+            statusEl.className = `admin-chat-status-badge ${conv.status === 'OPEN' ? 'open' : 'closed'}`;
+            statusEl.style.display = 'inline-block';
+        }
+        if (closeBtn) closeBtn.style.display = conv.status === 'OPEN' ? 'inline-block' : 'none';
+        if (form) form.style.display = conv.status === 'OPEN' ? 'flex' : 'none';
+
+        renderAdminChatMessages(data.messages || []);
+        startAdminChatPolling();
+        fetchAdminChatUnread();
+    } catch (err) {
+        if (container) container.innerHTML = '';
+        alert(err.message);
+    }
+}
+
+function renderAdminChatMessages(messages, append = false) {
+    const container = document.getElementById('adminChatMessages');
+    if (!container) return;
+
+    if (!messages.length && !append) {
+        container.innerHTML = '';
+        adminChatLastMsgId = 0;
+        return;
+    }
+
+    if (!append) {
+        container.innerHTML = '';
+        adminChatLastMsgId = 0;
+    }
+
+    messages.forEach(msg => {
+        if (msg.id <= adminChatLastMsgId) return;
+        adminChatLastMsgId = Math.max(adminChatLastMsgId, msg.id);
+        const bubble = document.createElement('div');
+        const isStaff = msg.sender_role === 'ADMIN';
+        bubble.className = `chat-bubble ${isStaff ? 'mine' : 'theirs'}`;
+        const sender = isStaff ? 'Bạn' : (msg.full_name || msg.username || 'Khách');
+        bubble.innerHTML = `<span class="chat-text">${escapeHtml(msg.body)}</span><span class="chat-meta">${escapeHtml(sender)} · ${formatChatTime(msg.created_at)}</span>`;
+        container.appendChild(bubble);
+    });
+
+    container.scrollTop = container.scrollHeight;
+}
+
+async function sendAdminChatMessage() {
+    if (!activeChatConvId) return;
+    const input = document.getElementById('adminChatInput');
+    const body = input?.value.trim();
+    if (!body) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/chat/conversations/${activeChatConvId}/messages`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ body })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gửi thất bại');
+
+        input.value = '';
+        renderAdminChatMessages([data.data], true);
+        loadAdminChat();
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+async function closeAdminConversation() {
+    if (!activeChatConvId) return;
+    if (!confirm('Đóng hội thoại này?')) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/admin/chat/conversations/${activeChatConvId}/status`, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'CLOSED' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Không thể đóng hội thoại');
+
+        resetAdminChatThread();
+        loadAdminChat();
+        fetchAdminChatUnread();
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+function resetAdminChatThread() {
+    activeChatConvId = null;
+    adminChatLastMsgId = 0;
+    stopAdminChatPolling();
+
+    const nameEl = document.getElementById('adminChatThreadName');
+    const statusEl = document.getElementById('adminChatThreadStatus');
+    const closeBtn = document.getElementById('adminChatCloseBtn');
+    const form = document.getElementById('adminChatForm');
+    const container = document.getElementById('adminChatMessages');
+
+    if (nameEl) nameEl.textContent = 'Chọn hội thoại';
+    if (statusEl) statusEl.style.display = 'none';
+    if (closeBtn) closeBtn.style.display = 'none';
+    if (form) form.style.display = 'none';
+    if (container) container.innerHTML = '';
+}
+
+function refreshAdminChat() {
+    loadAdminChat();
+}
+
+function startAdminChatPolling() {
+    stopAdminChatPolling();
+    adminChatPollTimer = setInterval(pollAdminChatMessages, 3000);
+}
+
+function stopAdminChatPolling() {
+    if (adminChatPollTimer) {
+        clearInterval(adminChatPollTimer);
+        adminChatPollTimer = null;
+    }
+}
+
+async function pollAdminChatMessages() {
+    if (!activeChatConvId) return;
+    try {
+        const url = adminChatLastMsgId
+            ? `${API_BASE}/admin/chat/conversations/${activeChatConvId}?since_id=${adminChatLastMsgId}`
+            : `${API_BASE}/admin/chat/conversations/${activeChatConvId}`;
+        const res = await fetch(url, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) return;
+
+        if (data.messages?.length) {
+            renderAdminChatMessages(data.messages, true);
+        }
+    } catch (_) { /* silent */ }
+}
+
+async function fetchAdminChatUnread() {
+    try {
+        const res = await fetch(`${API_BASE}/admin/chat/unread`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) return;
+
+        const badge = document.getElementById('adminChatTabBadge');
+        if (badge) {
+            const count = data.unread_count || 0;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    } catch (_) { /* silent */ }
+}
+
+function formatChatTime(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr.replace(' ', 'T'));
+    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+}
 
 export function searchAdminProducts(query) {
     const q = (query || '').toLowerCase().trim();

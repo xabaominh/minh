@@ -14,6 +14,7 @@ import {
     setupSearch, setupSorting, setupPriceFilter, setupProductModal, setupScrollReveal
 } from './modules/products.js';
 import { loadOrders } from './modules/orders.js';
+import { setupChat, updateChatVisibility } from './modules/chat.js';
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadComponent('auth-modal-slot', 'components/authModal.html'),
         loadComponent('checkout-modal-slot', 'components/checkoutModal.html'),
         loadComponent('product-modal-slot', 'components/productModal.html'),
+        loadComponent('chat-widget-slot', 'components/chatWidget.html'),
     ]);
 
     // 2. Load default view (home)
@@ -32,6 +34,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. Kiểm tra đăng nhập
     await checkAuth();
+    updateChatVisibility();
+    window.addEventListener('authChanged', () => updateChatVisibility());
     if (isManagementUser(state.currentUser)) {
         await switchView('admin');
         await loadAdminDashboard();
@@ -57,6 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupSidebarToggle();
     setupScrollReveal();
     updateCartUI();
+    setupChat();
 
     // 6. Lắng nghe sự kiện chuyển view
     window.addEventListener('viewChanged', async (e) => {
@@ -95,6 +100,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (viewName === 'admin') {
             loadAdminDashboard();
         }
+
+        updateChatVisibility();
     });
 
     // Hide loading spinner

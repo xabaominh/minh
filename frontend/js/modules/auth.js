@@ -13,8 +13,10 @@ export async function checkAuth() {
         const data = await res.json();
         if (data.logged_in) {
             state.currentUser = data.user;
-            updateAuthUI();
+        } else {
+            state.currentUser = null;
         }
+        updateAuthUI();
     } catch (e) {
         console.log('Auth check failed:', e);
     }
@@ -40,6 +42,7 @@ export function updateAuthUI() {
         loggedIn.style.display = 'none';
         if (adminDashboardBtn) adminDashboardBtn.style.display = 'none';
     }
+    window.dispatchEvent(new Event('authChanged'));
 }
 
 export function setupAuth() {

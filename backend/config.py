@@ -10,6 +10,17 @@ class Config:
     """Cấu hình ứng dụng Flask."""
     SECRET_KEY = os.getenv('SECRET_KEY', 'luxdecor_default_secret')
     DEBUG = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_HTTPONLY = True
+    CORS_ORIGINS = [
+        'http://localhost:5000',
+        'http://127.0.0.1:5000',
+        'http://localhost:5501',
+        'http://127.0.0.1:5501',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
 
 
 # Cấu hình kết nối MySQL

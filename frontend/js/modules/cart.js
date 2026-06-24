@@ -154,6 +154,10 @@ export async function syncCartFromServer() {
                 quantity: item.quantity
             }));
             updateCartUI();
+        } else if (res.status === 401) {
+            state.currentUser = null;
+            const { updateAuthUI } = await import('./auth.js');
+            updateAuthUI();
         }
     } catch (e) {
         console.error('Sync cart error:', e);

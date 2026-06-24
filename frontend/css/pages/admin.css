@@ -416,9 +416,11 @@
 .admin-tabs-container {
     margin-bottom: 20px;
     display: flex;
+    flex-wrap: wrap;
     gap: 15px;
     border-bottom: 1px solid var(--border);
     padding-bottom: 10px;
+    overflow-x: auto;
 }
 
 .admin-tab-btn {

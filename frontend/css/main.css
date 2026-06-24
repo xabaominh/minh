@@ -15,6 +15,7 @@
 @import 'components/modal.css';
 @import 'components/cart.css';
 @import 'components/notifications.css';
+@import 'components/chat.css';
 
 /* Pages */
 @import 'pages/home.css';
