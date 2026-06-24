@@ -77,7 +77,7 @@ def get_dashboard_data():
 
 
 def get_all_orders(status_filter=None):
-    """Lấy tất cả đơn hàng cho admin."""
+    """Lấy tất cả đơn hàng cho admin (kèm chi tiết sản phẩm)."""
     conn = None
     cursor = None
     try:
@@ -106,9 +106,16 @@ def get_all_orders(status_filter=None):
         cursor.execute(query, params)
         orders = cursor.fetchall()
 
-        # Serialize dates
+        # Serialize dates + lấy chi tiết sản phẩm
         for order in orders:
-            order = _serialize_dates(order)
+            _serialize_dates(order)
+            cursor.execute("""
+                SELECT oi.product_name, oi.quantity, oi.price, pr.thumbnail_url
+                FROM order_items oi
+                LEFT JOIN products pr ON oi.product_id = pr.id
+                WHERE oi.order_id = %s
+            """, (order['id'],))
+            order['items'] = cursor.fetchall()
 
         return decimal_to_float(orders), None
 

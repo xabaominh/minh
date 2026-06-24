@@ -674,8 +674,18 @@ function renderAdminOrders(orders) {
 
         const statusOptions = buildStatusDropdown(order.id, order.order_status);
 
+        const itemsHtml = (order.items || []).map(item => `
+            <div class="admin-order-item-row">
+                <img src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}" class="admin-order-item-thumb">
+                <span class="admin-order-item-name">${escapeHtml(item.product_name)}</span>
+                <span class="admin-order-item-qty">x${item.quantity}</span>
+                <span class="admin-order-item-price">${formatCurrency(item.price)}</span>
+                <span class="admin-order-item-subtotal">${formatCurrency(item.price * item.quantity)}</span>
+            </div>
+        `).join('');
+
         return `
-            <tr>
+            <tr class="admin-order-row" onclick="this.nextElementSibling.classList.toggle('show')" style="cursor:pointer;" title="Click để xem chi tiết sản phẩm">
                 <td><strong>#${order.id}</strong></td>
                 <td>
                     <div style="font-weight: 500;">${receiverInfo}</div>
@@ -695,7 +705,20 @@ function renderAdminOrders(orders) {
                     </span>
                 </td>
                 <td style="font-size: 0.85em;">${escapeHtml(order.created_at || '')}</td>
-                <td>${statusOptions}</td>
+                <td onclick="event.stopPropagation()">${statusOptions}</td>
+            </tr>
+            <tr class="admin-order-detail-row">
+                <td colspan="8">
+                    <div class="admin-order-items-wrap">
+                        <div class="admin-order-items-header">
+                            <span style="flex:2">Sản phẩm</span>
+                            <span style="flex:0 0 60px;text-align:center">SL</span>
+                            <span style="flex:0 0 120px;text-align:right">Đơn giá</span>
+                            <span style="flex:0 0 120px;text-align:right">Thành tiền</span>
+                        </div>
+                        ${itemsHtml || '<div style="padding:8px 0;color:var(--text-muted);">Không có thông tin sản phẩm</div>'}
+                    </div>
+                </td>
             </tr>
         `;
     }).join('');

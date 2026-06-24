@@ -38,7 +38,21 @@ export async function loadOrders() {
             'SHIPPING': 'Đang giao', 'COMPLETED': 'Hoàn thành', 'CANCELLED': 'Đã hủy'
         };
 
-        container.innerHTML = orders.map(order => `
+        container.innerHTML = orders.map(order => {
+            const itemsHtml = (order.items || []).map(item => `
+                <div class="order-item-row">
+                    <img class="order-item-thumb" src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}">
+                    <div class="order-item-info">
+                        <span class="order-item-name">${escapeHtml(item.product_name)}</span>
+                        <span class="order-item-qty">x${item.quantity}</span>
+                    </div>
+                    <div class="order-item-price">
+                        <span>${formatPrice(item.price)}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
             <div class="order-card">
                 <div class="order-card-header">
                     <div>
@@ -49,6 +63,9 @@ export async function loadOrders() {
                         ${statusText[order.order_status] || order.order_status}
                     </span>
                 </div>
+                <div class="order-card-items">
+                    ${itemsHtml || '<p style="color:var(--text-muted);font-size:0.85rem;">Không có thông tin sản phẩm</p>'}
+                </div>
                 <div class="order-card-body">
                     <p><i class="fas fa-user"></i> ${escapeHtml(order.receiver_name || 'Người nhận')}</p>
                     ${order.receiver_phone ? `<p><i class="fas fa-phone"></i> ${escapeHtml(order.receiver_phone)}</p>` : ''}
@@ -56,10 +73,11 @@ export async function loadOrders() {
                     <p><i class="fas fa-credit-card"></i> ${order.payment_method === 'COD' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản'}</p>
                 </div>
                 <div class="order-card-footer">
+                    <span class="order-footer-label">Tổng cộng:</span>
                     <strong>${formatPrice(order.total_amount)}</strong>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
 
     } catch (err) {
         container.innerHTML = '<div class="loading-products error"><i class="fas fa-exclamation-triangle"></i><p>Không thể tải đơn hàng.</p></div>';

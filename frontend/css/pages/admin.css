@@ -722,3 +722,99 @@ textarea.admin-form-control {
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* =====================================================
+   Admin Order Detail (Expandable Row)
+   ===================================================== */
+
+.admin-order-row:hover {
+    background: rgba(37, 99, 235, 0.03);
+}
+
+.admin-order-detail-row {
+    display: none;
+}
+
+.admin-order-detail-row.show {
+    display: table-row;
+}
+
+.admin-order-detail-row td {
+    padding: 0 !important;
+    border-bottom: 2px solid var(--primary) !important;
+}
+
+.admin-order-items-wrap {
+    padding: 12px 20px 16px;
+    background: #f8fafc;
+    border-top: 1px dashed var(--border);
+}
+
+.admin-order-items-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
+}
+
+.admin-order-item-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.05);
+}
+
+.admin-order-item-row:last-child {
+    border-bottom: none;
+}
+
+.admin-order-item-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 5px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.admin-order-item-name {
+    flex: 2;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-order-item-qty {
+    flex: 0 0 60px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.admin-order-item-price {
+    flex: 0 0 120px;
+    text-align: right;
+    font-size: 0.85rem;
+    color: var(--text-body);
+}
+
+.admin-order-item-subtotal {
+    flex: 0 0 120px;
+    text-align: right;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+

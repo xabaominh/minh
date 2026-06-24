@@ -96,7 +96,7 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
 
 
 def get_user_orders(user_id):
-    """Lấy danh sách đơn hàng của user."""
+    """Lấy danh sách đơn hàng của user (kèm chi tiết sản phẩm)."""
     conn = None
     cursor = None
     try:
@@ -112,8 +112,20 @@ def get_user_orders(user_id):
         """, (user_id,))
         orders = cursor.fetchall()
 
-        # Serialize: datetime → string
-        result = [serialize_order(order) for order in orders]
+        # Lấy chi tiết sản phẩm cho từng đơn hàng
+        result = []
+        for order in orders:
+            cursor.execute("""
+                SELECT oi.product_name, oi.quantity, oi.price, p.thumbnail_url
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = %s
+            """, (order['id'],))
+            items = cursor.fetchall()
+            order_data = serialize_order(order)
+            order_data['items'] = decimal_to_float(items)
+            result.append(order_data)
+
         return result, None
 
     except mysql.connector.Error as err:
