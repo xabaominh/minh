@@ -40,7 +40,16 @@ export async function loadOrders() {
         };
 
         container.innerHTML = orders.map(order => {
-            const itemsHtml = (order.items || []).map(item => `
+            const isCompleted = order.order_status === 'COMPLETED';
+            const itemsHtml = (order.items || []).map(item => {
+                const reviewAction = isCompleted && item.product_id
+                    ? (item.reviewed
+                        ? `<span class="order-reviewed-badge"><i class="fas fa-check-circle"></i> Đã đánh giá</span>`
+                        : `<button type="button" class="order-review-btn" onclick="window._orderReview(event, ${item.product_id})" title="Viết đánh giá cho sản phẩm này">
+                               <i class="fas fa-star"></i> Đánh giá
+                           </button>`)
+                    : '';
+                return `
                 <div class="order-item-row">
                     <img class="order-item-thumb" src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}">
                     <div class="order-item-info">
@@ -50,8 +59,10 @@ export async function loadOrders() {
                     <div class="order-item-price">
                         <span>${formatPrice(item.price)}</span>
                     </div>
+                    ${reviewAction ? `<div class="order-item-actions">${reviewAction}</div>` : ''}
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             return `
             <div class="order-card">
@@ -96,4 +107,13 @@ window._orderContact = (event, orderId, orderStatus) => {
         event.stopPropagation();
     }
     sendOrderContact(orderId, orderStatus);
+};
+
+window._orderReview = (event, productId) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    if (window._products?.openProductModal) {
+        window._products.openProductModal(productId, { focusReview: true });
+    }
 };

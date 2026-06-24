@@ -129,6 +129,7 @@
     gap: 12px;
     padding: 6px 0;
     border-bottom: 1px dashed rgba(0,0,0,0.06);
+    flex-wrap: wrap;
 }
 
 .order-item-row:last-child {
@@ -175,4 +176,41 @@
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--accent);
+}
+
+.order-item-actions {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.order-review-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border: 1.5px solid #f39c12;
+    border-radius: 8px;
+    background: rgba(243, 156, 18, 0.08);
+    color: #e67e22;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.order-review-btn:hover {
+    background: #f39c12;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
+}
+
+.order-reviewed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #27ae60;
+    white-space: nowrap;
 }

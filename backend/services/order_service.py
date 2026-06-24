@@ -143,11 +143,15 @@ def get_user_orders(user_id):
         result = []
         for order in orders:
             cursor.execute("""
-                SELECT oi.product_name, oi.quantity, oi.price, p.thumbnail_url
+                SELECT oi.product_id, oi.product_name, oi.quantity, oi.price, p.thumbnail_url,
+                       EXISTS(
+                           SELECT 1 FROM reviews r
+                           WHERE r.user_id = %s AND r.product_id = oi.product_id
+                       ) AS reviewed
                 FROM order_items oi
                 LEFT JOIN products p ON oi.product_id = p.id
                 WHERE oi.order_id = %s
-            """, (order['id'],))
+            """, (user_id, order['id']))
             items = cursor.fetchall()
             order_data = serialize_order(order)
             order_data['items'] = decimal_to_float(items)

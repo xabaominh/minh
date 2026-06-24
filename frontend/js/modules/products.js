@@ -350,7 +350,7 @@ export function closeProductModal() {
     document.body.style.overflow = '';
 }
 
-export async function openProductModal(productId) {
+export async function openProductModal(productId, options = {}) {
     const modal = document.getElementById('productModal');
     const overlay = document.getElementById('overlay');
     const body = document.getElementById('productModalBody');
@@ -441,6 +441,12 @@ export async function openProductModal(productId) {
         `;
 
         setupReviewForm(productId);
+
+        if (options.focusReview) {
+            requestAnimationFrame(() => {
+                body.querySelector('.reviews-section-full')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
     } catch (err) {
         body.innerHTML = '<div class="loading-products error"><i class="fas fa-exclamation-triangle"></i><p>Không thể tải thông tin sản phẩm.</p></div>';
     }
