@@ -2,7 +2,7 @@ import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_db
 from models.user import serialize_user
-from utils.validators import validate_email, validate_password, validate_required
+from utils.validators import validate_email, validate_password, validate_phone
 
 
 def _serialize_address(row):
@@ -36,6 +36,8 @@ def register_user(data):
         return None, "Mật khẩu phải có ít nhất 4 ký tự", 400
     if not validate_email(email):
         return None, "Email không hợp lệ", 400
+    if not validate_phone(phone):
+        return None, "Số điện thoại phải gồm đúng 10 chữ số, bắt đầu bằng 0 (vd: 0901234567)", 400
 
     conn = None
     cursor = None
@@ -122,6 +124,8 @@ def add_user_address(user_id, data):
 
     if not address_line:
         return None, "Vui lòng nhập địa chỉ giao hàng", 400
+    if not validate_phone(phone):
+        return None, "Số điện thoại phải gồm đúng 10 chữ số, bắt đầu bằng 0 (vd: 0901234567)", 400
 
     conn = None
     cursor = None

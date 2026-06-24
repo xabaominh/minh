@@ -6,6 +6,7 @@ import { API_BASE, state } from '../state.js';
 import { showNotification } from './cart.js';
 import { switchView } from '../router.js';
 import { isManagementUser } from '../roles.js';
+import { phoneValidationMessage } from '../validators.js';
 
 export async function checkAuth() {
     try {
@@ -117,6 +118,13 @@ export function setupAuth() {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
 
         try {
+            const phone = document.getElementById('regPhone').value.trim();
+            const phoneError = phoneValidationMessage(phone);
+            if (phoneError) {
+                showNotification(phoneError, 'warning');
+                return;
+            }
+
             const res = await fetch(`${API_BASE}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -126,7 +134,7 @@ export function setupAuth() {
                     email: document.getElementById('regEmail').value,
                     password: document.getElementById('regPassword').value,
                     full_name: document.getElementById('regFullname').value,
-                    phone: document.getElementById('regPhone').value,
+                    phone,
                     address: document.getElementById('regAddress').value
                 })
             });

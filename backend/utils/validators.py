@@ -1,3 +1,15 @@
+def validate_phone(phone):
+    """Số điện thoại VN: đúng 10 chữ số, bắt đầu bằng 0."""
+    if phone is None:
+        return True
+    if not isinstance(phone, str):
+        return False
+    phone = phone.strip()
+    if not phone:
+        return True
+    return len(phone) == 10 and phone.isdigit() and phone.startswith('0')
+
+
 def validate_email(email):
     """Kiểm tra email hợp lệ cơ bản."""
     if not email or not isinstance(email, str):

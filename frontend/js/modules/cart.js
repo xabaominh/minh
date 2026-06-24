@@ -4,6 +4,7 @@
 
 import { API_BASE, state } from '../state.js';
 import { openAuthModal } from './auth.js';
+import { phoneValidationMessage } from '../validators.js';
 
 // ===== NOTIFICATION =====
 export function showNotification(message, type = 'success') {
@@ -377,6 +378,11 @@ async function getCheckoutShippingInfo() {
     if (select && select.value !== 'new') {
         const selected = state.userAddresses.find(address => String(address.id) === select.value);
         if (!selected?.address_line) return null;
+        const phoneError = phoneValidationMessage(selected.phone || state.currentUser?.phone || '');
+        if (phoneError) {
+            showNotification(phoneError, 'warning');
+            return null;
+        }
         return {
             receiver_name: selected.receiver_name || state.currentUser?.full_name || state.currentUser?.username || '',
             receiver_phone: selected.phone || state.currentUser?.phone || '',
@@ -398,6 +404,13 @@ async function getCheckoutShippingInfo() {
         address_line: addressLine,
         is_default: document.getElementById('saveNewAddressAsDefault')?.checked ?? true
     };
+
+    const phoneError = phoneValidationMessage(payload.phone);
+    if (phoneError) {
+        showNotification(phoneError, 'warning');
+        document.getElementById('checkoutReceiverPhone')?.focus();
+        return null;
+    }
 
     try {
         const res = await fetch(`${API_BASE}/addresses`, {

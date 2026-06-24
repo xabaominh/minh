@@ -1,6 +1,7 @@
 import mysql.connector
 from database import get_db
 from utils.helpers import decimal_to_float
+from utils.validators import validate_phone
 from models.order import serialize_order
 
 
@@ -15,6 +16,8 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
         return None, "Vui lòng nhập địa chỉ giao hàng", 400
     receiver_name = receiver_name.strip() or "Người nhận"
     receiver_phone = receiver_phone.strip()
+    if not validate_phone(receiver_phone):
+        return None, "Số điện thoại phải gồm đúng 10 chữ số, bắt đầu bằng 0 (vd: 0901234567)", 400
 
     conn = None
     cursor = None
