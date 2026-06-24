@@ -199,6 +199,33 @@
     margin-bottom: 16px;
 }
 
+.gia-km .gia-goc {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    font-size: 0.88em;
+    font-weight: 500;
+    margin-right: 8px;
+}
+
+.gia-km .gia-ban {
+    color: #e74c3c;
+    font-weight: 800;
+}
+
+.discount-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.35);
+    z-index: 2;
+}
+
 /* ===== CATEGORIES SECTION ===== */
 .categories-section {
     background: var(--primary);

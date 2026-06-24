@@ -1,11 +1,12 @@
 import mysql.connector
 from database import get_db
-from utils.helpers import decimal_to_float
+from utils.helpers import decimal_to_float, effective_price
 from utils.validators import validate_phone
+from services.coupon_service import validate_coupon
 from models.order import serialize_order
 
 
-def create_order(user_id, payment_method, shipping_address, receiver_name='', receiver_phone=''):
+def create_order(user_id, payment_method, shipping_address, receiver_name='', receiver_phone='', coupon_code=''):
     """
     Tạo đơn hàng mới từ giỏ hàng.
     Trả về (result_dict, error_message, status_code).
@@ -27,7 +28,8 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
 
         # Lấy giỏ hàng
         cursor.execute("""
-            SELECT ci.id AS item_id, ci.quantity, p.id AS product_id, p.price, p.stock_quantity, p.product_name
+            SELECT ci.id AS item_id, ci.quantity, p.id AS product_id, p.price,
+                   p.discount_price, p.stock_quantity, p.product_name
             FROM carts c
             JOIN cart_items ci ON c.id = ci.cart_id
             JOIN products p ON ci.product_id = p.id
@@ -38,38 +40,53 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
         if not cart_items:
             return None, "Giỏ hàng trống", 400
 
+        for item in cart_items:
+            item['unit_price'] = effective_price(item['price'], item.get('discount_price'))
+
         # Kiểm tra tồn kho
         for item in cart_items:
             if item['quantity'] > item['stock_quantity']:
                 return None, f"Sản phẩm '{item['product_name']}' không đủ hàng (còn {item['stock_quantity']})", 400
 
         # Tính tổng
-        total = sum(item['price'] * item['quantity'] for item in cart_items)
+        total = sum(item['unit_price'] * item['quantity'] for item in cart_items)
+
+        discount_amount = 0
+        coupon_id = None
+        if coupon_code:
+            coupon_data, coupon_error, coupon_status = validate_coupon(coupon_code, total)
+            if coupon_error:
+                return None, coupon_error, coupon_status
+            discount_amount = coupon_data['discount_amount']
+            coupon_id = coupon_data['coupon_id']
+
+        final_amount = total - discount_amount
 
         # Tạo đơn hàng
         cursor.execute(
             """
             INSERT INTO orders (
-                user_id, total_amount, discount_amount, final_amount,
+                user_id, coupon_id, total_amount, discount_amount, final_amount,
                 order_status, receiver_name, receiver_phone, shipping_address
             )
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
             """,
-            (user_id, total, 0, total, 'PENDING', receiver_name, receiver_phone, shipping_address)
+            (user_id, coupon_id, total, discount_amount, final_amount,
+             'PENDING', receiver_name, receiver_phone, shipping_address)
         )
         order_id = cursor.lastrowid
 
         # Insert vào payments table
         cursor.execute(
             "INSERT INTO payments (order_id, payment_method, amount) VALUES (%s,%s,%s)",
-            (order_id, payment_method, total)
+            (order_id, payment_method, final_amount)
         )
 
         # Tạo order_items + trừ stock
         for item in cart_items:
             cursor.execute(
                 "INSERT INTO order_items (order_id, product_id, product_name, quantity, price) VALUES (%s,%s,%s,%s,%s)",
-                (order_id, item['product_id'], item['product_name'], item['quantity'], item['price'])
+                (order_id, item['product_id'], item['product_name'], item['quantity'], item['unit_price'])
             )
             cursor.execute(
                 "UPDATE products SET stock_quantity = stock_quantity - %s WHERE id = %s",
@@ -82,9 +99,15 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
         if cart:
             cursor.execute("DELETE FROM cart_items WHERE cart_id = %s", (cart['id'],))
 
+        if coupon_id:
+            cursor.execute(
+                "UPDATE coupons SET used_count = used_count + 1 WHERE id = %s",
+                (coupon_id,)
+            )
+
         conn.commit()
 
-        return {"order_id": order_id, "total": float(total)}, None, 201
+        return {"order_id": order_id, "total": float(final_amount), "discount_amount": float(discount_amount)}, None, 201
 
     except mysql.connector.Error as err:
         if conn:
@@ -107,7 +130,8 @@ def get_user_orders(user_id):
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute("""
-            SELECT o.id, o.total_amount, p.payment_method, o.order_status,
+            SELECT o.id, o.total_amount, o.discount_amount, o.final_amount,
+                   p.payment_method, o.order_status,
                    o.receiver_name, o.receiver_phone, o.shipping_address, o.created_at
             FROM orders o
             LEFT JOIN payments p ON o.id = p.order_id

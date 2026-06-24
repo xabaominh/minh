@@ -6,7 +6,10 @@ from services.auth_service import (
     get_profile,
     get_user_addresses,
     add_user_address,
-    set_default_address
+    set_default_address,
+    delete_user_address,
+    update_profile,
+    change_password
 )
 
 auth_bp = Blueprint('auth', __name__)
@@ -94,3 +97,32 @@ def make_default_address(address_id):
     if error:
         return jsonify({"error": error}), status
     return jsonify({"message": "Đã đặt làm địa chỉ mặc định"}), 200
+
+
+@auth_bp.route('/api/addresses/<int:address_id>', methods=['DELETE'])
+@login_required
+def remove_address(address_id):
+    error, status = delete_user_address(session['user_id'], address_id)
+    if error:
+        return jsonify({"error": error}), status
+    return jsonify({"message": "Đã xóa địa chỉ"}), 200
+
+
+@auth_bp.route('/api/profile', methods=['PUT'])
+@login_required
+def update_profile_route():
+    data = request.get_json(silent=True) or {}
+    user, error, status = update_profile(session['user_id'], data)
+    if error:
+        return jsonify({"error": error}), status
+    return jsonify({"message": "Đã cập nhật thông tin", "user": user}), status
+
+
+@auth_bp.route('/api/profile/password', methods=['PUT'])
+@login_required
+def change_password_route():
+    data = request.get_json(silent=True) or {}
+    error, status = change_password(session['user_id'], data)
+    if error:
+        return jsonify({"error": error}), status
+    return jsonify({"message": "Đã đổi mật khẩu"}), status

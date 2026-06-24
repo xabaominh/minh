@@ -1,6 +1,6 @@
 import mysql.connector
 from database import get_db
-from utils.helpers import decimal_to_float
+from utils.helpers import decimal_to_float, effective_price
 
 
 def _get_or_create_cart(cursor, conn, user_id):
@@ -24,7 +24,8 @@ def get_cart(user_id):
 
         cursor.execute("""
             SELECT ci.id AS item_id, ci.quantity,
-                   p.id AS product_id, p.product_name, p.price, p.thumbnail_url, p.stock_quantity
+                   p.id AS product_id, p.product_name, p.price, p.discount_price,
+                   p.thumbnail_url, p.stock_quantity
             FROM carts c
             JOIN cart_items ci ON c.id = ci.cart_id
             JOIN products p ON ci.product_id = p.id
@@ -32,7 +33,10 @@ def get_cart(user_id):
         """, (user_id,))
         items = cursor.fetchall()
 
-        total = sum(item['price'] * item['quantity'] for item in items)
+        for item in items:
+            item['unit_price'] = effective_price(item['price'], item.get('discount_price'))
+
+        total = sum(item['unit_price'] * item['quantity'] for item in items)
 
         return decimal_to_float({"items": items, "total": float(total)}), None
 

@@ -6,8 +6,24 @@
             <div class="auth-form-icon"><i class="fas fa-truck"></i></div>
             <h3>Xác Nhận Đặt Hàng</h3>
             <div class="checkout-summary">
+                <p>Tạm tính</p>
+                <strong id="checkoutSubtotal">0 ₫</strong>
+            </div>
+            <div class="checkout-discount-line" id="checkoutDiscountLine" style="display:none;">
+                <span>Giảm giá (<span id="checkoutCouponCode"></span>)</span>
+                <strong id="checkoutDiscountAmount">-0 ₫</strong>
+            </div>
+            <div class="checkout-summary">
                 <p>Tổng cộng</p>
                 <strong id="checkoutTotal">0 ₫</strong>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-ticket-alt"></i> Mã giảm giá</label>
+                <div class="coupon-row">
+                    <input type="text" id="checkoutCouponInput" placeholder="VD: LUXDECOR10 hoặc GIAM100K">
+                    <button type="button" id="applyCouponBtn">Áp dụng</button>
+                </div>
+                <small class="coupon-hint">Mã mẫu: <strong>LUXDECOR10</strong> (giảm 10%, đơn từ 1 triệu) · <strong>GIAM100K</strong> (giảm 100k, đơn từ 3 triệu)</small>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng *</label>

@@ -12,7 +12,7 @@ import { isManagementUser } from './roles.js';
  */
 export async function loadComponent(slotId, path) {
     try {
-        const res = await fetch(`${path}?v=4`);
+        const res = await fetch(`${path}?v=6`);
         if (!res.ok) throw new Error(`Failed to load ${path}`);
         const html = await res.text();
         const slot = document.getElementById(slotId);
@@ -39,7 +39,7 @@ export async function switchView(viewName, filterCategoryId = null) {
 
     // Load view HTML
     try {
-        const res = await fetch(`views/${viewName}.html?v=4`);
+        const res = await fetch(`views/${viewName}.html?v=6`);
         if (!res.ok) throw new Error(`View not found: ${viewName}`);
         const html = await res.text();
         viewSlot.innerHTML = html;

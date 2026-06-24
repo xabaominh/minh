@@ -19,7 +19,8 @@ def place_order():
         payment_method,
         shipping_address,
         receiver_name,
-        receiver_phone
+        receiver_phone,
+        data.get('coupon_code', '').strip()
     )
     if error:
         return jsonify({"error": error}), status
@@ -27,7 +28,8 @@ def place_order():
     return jsonify({
         "message": "Đặt hàng thành công!",
         "order_id": result['order_id'],
-        "total": result['total']
+        "total": result['total'],
+        "discount_amount": result.get('discount_amount', 0)
     }), status
 
 

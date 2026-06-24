@@ -23,5 +23,6 @@ export const state = {
     currentSearch: '',
     currentView: 'home',
     currentUser: null,
-    userAddresses: []
+    userAddresses: [],
+    appliedCoupon: null
 };

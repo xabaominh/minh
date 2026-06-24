@@ -5,6 +5,7 @@
 import { API_BASE, state } from '../state.js';
 import { formatPrice, showNotification, addToCart, syncCartFromServer, closeCheckoutModal } from './cart.js';
 import { optimizeProductImage } from '../imageUtils.js';
+import { getEffectivePrice, formatPriceHtml, renderStars, hasDiscount, discountPercent } from '../priceUtils.js';
 
 // ===== CATEGORIES =====
 export async function loadCategoriesData() {
@@ -110,6 +111,9 @@ export async function loadProducts(categoryId = null, search = null) {
         container.innerHTML = products.map(p => {
             const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const thumb = optimizeProductImage(p.thumbnail_url);
+            const unitPrice = getEffectivePrice(p);
+            const saleBadge = hasDiscount(p.price, p.discount_price)
+                ? `<div class="discount-badge">-${discountPercent(p.price, p.discount_price)}%</div>` : '';
             return `
             <div class="the-san-pham reveal-on-scroll" data-id="${p.id}">
                 <div class="product-img-wrapper" onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">
@@ -117,12 +121,13 @@ export async function loadProducts(categoryId = null, search = null) {
                          width="600" height="600"
                          onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=60'">
                     <div class="product-badge">${p.category_name}</div>
+                    ${saleBadge}
                 </div>
                 <div class="thong-tin">
                     <h3 onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">${p.product_name}</h3>
-                    <p class="gia-tien">${formatPrice(p.price)}</p>
+                    ${formatPriceHtml(p.price, p.discount_price)}
                     <button class="add-to-cart-btn"
-                            onclick="window._cart.addToCart(${p.id}, '${safeName}', ${p.price}, '${thumb}')">
+                            onclick="window._cart.addToCart(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')">
                         <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
                     </button>
                 </div>
@@ -170,18 +175,18 @@ export function applyFilters() {
     const maxEl = document.getElementById('priceMax');
     if (minEl) {
         const minP = parseFloat(minEl.value);
-        if (!isNaN(minP)) filtered = filtered.filter(p => p.price >= minP);
+        if (!isNaN(minP)) filtered = filtered.filter(p => getEffectivePrice(p) >= minP);
     }
     if (maxEl) {
         const maxP = parseFloat(maxEl.value);
-        if (!isNaN(maxP)) filtered = filtered.filter(p => p.price <= maxP);
+        if (!isNaN(maxP)) filtered = filtered.filter(p => getEffectivePrice(p) <= maxP);
     }
 
     const sortEl = document.getElementById('sortSelect');
     if (sortEl) {
         const sortVal = sortEl.value;
-        if (sortVal === 'price_asc') filtered.sort((a, b) => a.price - b.price);
-        else if (sortVal === 'price_desc') filtered.sort((a, b) => b.price - a.price);
+        if (sortVal === 'price_asc') filtered.sort((a, b) => getEffectivePrice(a) - getEffectivePrice(b));
+        else if (sortVal === 'price_desc') filtered.sort((a, b) => getEffectivePrice(b) - getEffectivePrice(a));
         else if (sortVal === 'name_asc') filtered.sort((a, b) => a.product_name.localeCompare(b.product_name));
         else if (sortVal === 'name_desc') filtered.sort((a, b) => b.product_name.localeCompare(a.product_name));
     }
@@ -204,6 +209,9 @@ function renderCollectionProducts(products) {
     grid.innerHTML = products.map(p => {
         const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const thumb = optimizeProductImage(p.thumbnail_url);
+        const unitPrice = getEffectivePrice(p);
+        const saleBadge = hasDiscount(p.price, p.discount_price)
+            ? `<div class="discount-badge">-${discountPercent(p.price, p.discount_price)}%</div>` : '';
         const stockHTML = `<p class="ton-kho ${p.stock_quantity > 0 ? '' : 'het-hang'}">
             <i class="fas fa-${p.stock_quantity > 0 ? 'check-circle' : 'times-circle'}"></i>
             ${p.stock_quantity > 0 ? p.stock_quantity + ' sản phẩm có sẵn' : 'Hết hàng'}
@@ -216,14 +224,15 @@ function renderCollectionProducts(products) {
                      width="600" height="600"
                      onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=60'">
                 <div class="product-badge">${p.category_name}</div>
+                ${saleBadge}
             </div>
             <div class="thong-tin-sp">
                 <h3 onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">${p.product_name}</h3>
                 <p class="mo-ta-ngan">${p.description || 'Sản phẩm nội thất cao cấp'}</p>
-                <p class="gia-sp">${formatPrice(p.price)}</p>
+                ${formatPriceHtml(p.price, p.discount_price, 'gia-sp')}
                 ${stockHTML}
                 <button class="add-to-cart-btn"
-                        onclick="window._cart.addToCart(${p.id}, '${safeName}', ${p.price}, '${thumb}')"
+                        onclick="window._cart.addToCart(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')"
                         ${p.stock_quantity <= 0 ? 'disabled' : ''}>
                     <i class="fas fa-shopping-bag"></i> Thêm vào giỏ
                 </button>
@@ -353,12 +362,36 @@ export async function openProductModal(productId) {
     body.innerHTML = '<div class="loading-products"><div class="spinner-small"></div><p>Đang tải thông tin sản phẩm...</p></div>';
 
     try {
-        const res = await fetch(`${API_BASE}/products/${productId}`);
-        if (!res.ok) throw new Error('API Error');
-        const p = await res.json();
+        const [productRes, reviewRes] = await Promise.all([
+            fetch(`${API_BASE}/products/${productId}`),
+            fetch(`${API_BASE}/products/${productId}/reviews`, { credentials: 'include' })
+        ]);
+        if (!productRes.ok) throw new Error('API Error');
+        const p = await productRes.json();
+        const reviewData = reviewRes.ok ? await reviewRes.json() : { reviews: [], summary: { average: 0, count: 0 }, can_review: false };
         const thumb = optimizeProductImage(p.thumbnail_url);
+        const unitPrice = getEffectivePrice(p);
 
         const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const priceBlock = formatPriceHtml(p.price, p.discount_price, 'product-detail-price');
+        const reviewsHtml = (reviewData.reviews || []).map(r => `
+            <div class="review-item">
+                <div class="product-rating-summary">${renderStars(r.rating)} <strong>${escapeHtml(r.full_name || r.username)}</strong></div>
+                <p>${escapeHtml(r.comment || '')}</p>
+                <small style="color:var(--text-muted);">${escapeHtml(r.created_at || '')}</small>
+            </div>
+        `).join('') || '<p style="color:var(--text-muted);">Chưa có đánh giá.</p>';
+
+        const reviewFormHtml = reviewData.can_review ? `
+            <form id="reviewForm" class="review-form">
+                <div class="star-picker" id="reviewStarPicker">
+                    ${[1,2,3,4,5].map(n => `<i class="fas fa-star" data-star="${n}"></i>`).join('')}
+                </div>
+                <textarea id="reviewComment" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                <button type="submit" class="auth-submit-btn"><i class="fas fa-paper-plane"></i> Gửi đánh giá</button>
+            </form>
+        ` : `<p class="review-hint">${escapeHtml(reviewData.review_message || 'Chỉ khách đã mua và nhận hàng mới được đánh giá.')}</p>`;
+
         let imagesHtml = `<img src="${thumb}" class="gallery-thumb active" onclick="window._products.changeMainImage(this, '${thumb}')">`;
         if (p.images && p.images.length > 0) {
             p.images.forEach(img => {
@@ -378,12 +411,13 @@ export async function openProductModal(productId) {
                 <div class="product-detail-info">
                     <div class="product-detail-category">${p.category_name}</div>
                     <h2>${p.product_name}</h2>
-                    <div class="product-detail-price">${formatPrice(p.price)}</div>
+                    ${priceBlock}
+                    <div class="product-rating-summary">${renderStars(reviewData.summary?.average || 0)} <span>${reviewData.summary?.count || 0} đánh giá</span></div>
                     <p class="product-detail-desc">${p.description || 'Không có mô tả cho sản phẩm này.'}</p>
                     <div class="product-specs">
                         <p><strong>Tình trạng:</strong> ${p.stock_quantity > 0 ? '<span style="color:#27ae60">Còn hàng (' + p.stock_quantity + ')</span>' : '<span style="color:#e74c3c">Hết hàng</span>'}</p>
-                        ${p.dimensions ? `<p><strong>Kích thước:</strong> ${p.dimensions}</p>` : ''}
-                        ${p.wood_material ? `<p><strong>Chất liệu:</strong> ${p.wood_material}</p>` : ''}
+                        ${p.attributes?.dimensions ? `<p><strong>Kích thước:</strong> ${p.attributes.dimensions}</p>` : ''}
+                        ${p.attributes?.material ? `<p><strong>Chất liệu:</strong> ${p.attributes.material}</p>` : ''}
                     </div>
                     <div class="product-detail-actions">
                         <div class="product-qty-selector">
@@ -392,17 +426,73 @@ export async function openProductModal(productId) {
                             <button class="product-qty-btn" onclick="window._products.changeModalQty(1)">+</button>
                         </div>
                         <button class="product-add-btn" 
-                                onclick="window._products.addToCartFromModal(${p.id}, '${safeName}', ${p.price}, '${thumb}')"
+                                onclick="window._products.addToCartFromModal(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')"
                                 ${p.stock_quantity <= 0 ? 'disabled' : ''}>
                             <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
                         </button>
                     </div>
                 </div>
             </div>
+            <div class="reviews-section reviews-section-full">
+                <h3><i class="fas fa-star"></i> Đánh giá sản phẩm</h3>
+                ${reviewFormHtml}
+                <div id="reviewsList">${reviewsHtml}</div>
+            </div>
         `;
+
+        setupReviewForm(productId);
     } catch (err) {
         body.innerHTML = '<div class="loading-products error"><i class="fas fa-exclamation-triangle"></i><p>Không thể tải thông tin sản phẩm.</p></div>';
     }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function setupReviewForm(productId) {
+    const picker = document.getElementById('reviewStarPicker');
+    const form = document.getElementById('reviewForm');
+    if (!picker || !form) return;
+
+    let selectedRating = 5;
+    const stars = picker.querySelectorAll('i');
+    const paintStars = (value) => {
+        stars.forEach(star => {
+            star.classList.toggle('active', Number(star.dataset.star) <= value);
+        });
+    };
+    paintStars(selectedRating);
+
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            selectedRating = Number(star.dataset.star);
+            paintStars(selectedRating);
+        });
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch(`${API_BASE}/products/${productId}/reviews`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    rating: selectedRating,
+                    comment: document.getElementById('reviewComment')?.value.trim()
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Không thể gửi đánh giá');
+            showNotification('Đã gửi đánh giá', 'success');
+            openProductModal(productId);
+        } catch (err) {
+            showNotification(err.message, 'error');
+        }
+    });
 }
 
 function changeMainImage(element, url) {

@@ -15,6 +15,7 @@ import {
     setupSearch, setupSorting, setupPriceFilter, setupProductModal, setupScrollReveal
 } from './modules/products.js';
 import { loadOrders } from './modules/orders.js';
+import { setupAccountNav, loadAccountPage } from './modules/account.js';
 import { setupChat, updateChatVisibility } from './modules/chat.js';
 
 
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 5. Setup events
     setupNavigation();
     setupAuth();
+    setupAccountNav();
     setupCart();
     setupCheckout();
     setupSearch();
@@ -96,6 +98,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (viewName === 'orders') {
             loadOrders();
+        }
+
+        if (viewName === 'account') {
+            loadAccountPage();
         }
 
         if (viewName === 'admin') {

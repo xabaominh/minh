@@ -79,7 +79,8 @@ export async function loadOrders() {
                     </button>
                     <div>
                         <span class="order-footer-label">Tổng cộng:</span>
-                        <strong>${formatPrice(order.total_amount)}</strong>
+                        <strong>${formatPrice(order.final_amount ?? order.total_amount)}</strong>
+                        ${order.discount_amount > 0 ? `<div style="font-size:0.82rem;color:#27ae60;">Đã giảm ${formatPrice(order.discount_amount)}</div>` : ''}
                     </div>
                 </div>
             </div>

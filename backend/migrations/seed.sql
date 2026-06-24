@@ -67,6 +67,24 @@ INSERT INTO product_images (product_id, image_url, display_order) VALUES
 (6, 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&q=80', 1),
 (11, 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600&q=80', 1);
 
+-- Giá khuyến mãi mẫu
+UPDATE products SET discount_price = 13900000 WHERE id = 1;
+UPDATE products SET discount_price = 19900000 WHERE id = 2;
+UPDATE products SET discount_price = 10900000 WHERE id = 6;
+UPDATE products SET discount_price = 5200000 WHERE id = 15;
+UPDATE products SET discount_price = 1500000 WHERE id = 12;
+
+-- Mã giảm giá mẫu
+INSERT INTO coupons (code, discount_amount, discount_type, min_order_amount, valid_from, valid_until, usage_limit, used_count, is_active) VALUES
+('LUXDECOR10', 10, 'PERCENT', 1000000, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 100, 0, TRUE),
+('GIAM100K', 100000, 'FIXED', 3000000, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 50, 0, TRUE);
+
+-- Đánh giá mẫu (user1 đã mua sản phẩm 1)
+INSERT INTO reviews (user_id, product_id, rating, comment) VALUES
+(2, 1, 5, 'Sofa rất đẹp, chất lượng tốt, giao hàng nhanh.'),
+(2, 2, 4, 'Giường ngủ êm, màu sắc đúng như hình.'),
+(2, 6, 5, 'Bàn ăn gỗ tự nhiên, rất hài lòng!');
+
 -- =====================================================
 -- KIỂM TRA
 -- =====================================================

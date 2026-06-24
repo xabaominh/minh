@@ -171,6 +171,134 @@ def add_user_address(user_id, data):
             conn.close()
 
 
+def delete_user_address(user_id, address_id):
+    """Xóa địa chỉ của user."""
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT id, is_default FROM user_addresses WHERE id = %s AND user_id = %s",
+            (address_id, user_id)
+        )
+        row = cursor.fetchone()
+        if not row:
+            return "Không tìm thấy địa chỉ", 404
+
+        cursor.execute("DELETE FROM user_addresses WHERE id = %s AND user_id = %s", (address_id, user_id))
+        conn.commit()
+
+        if row['is_default']:
+            cursor.execute(
+                "SELECT id FROM user_addresses WHERE user_id = %s ORDER BY id DESC LIMIT 1",
+                (user_id,)
+            )
+            next_addr = cursor.fetchone()
+            if next_addr:
+                cursor.execute(
+                    "UPDATE user_addresses SET is_default = TRUE WHERE id = %s",
+                    (next_addr['id'],)
+                )
+                conn.commit()
+        return None, 200
+    except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
+        print(f"Delete Address Error: {err}")
+        return "Không thể xóa địa chỉ", 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def update_profile(user_id, data):
+    """Cập nhật thông tin cá nhân."""
+    full_name = data.get('full_name', '').strip()
+    phone = data.get('phone', '').strip()
+    email = data.get('email', '').strip()
+
+    if email and not validate_email(email):
+        return None, "Email không hợp lệ", 400
+    if not validate_phone(phone):
+        return None, "Số điện thoại phải gồm đúng 10 chữ số, bắt đầu bằng 0 (vd: 0901234567)", 400
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        if email:
+            cursor.execute(
+                "SELECT id FROM users WHERE email = %s AND id <> %s",
+                (email, user_id)
+            )
+            if cursor.fetchone():
+                return None, "Email đã được sử dụng", 409
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET full_name = %s, phone = %s, email = COALESCE(NULLIF(%s, ''), email)
+            WHERE id = %s
+            """,
+            (full_name or None, phone or None, email, user_id)
+        )
+        conn.commit()
+        return get_profile(user_id), None, 200
+    except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
+        print(f"Update Profile Error: {err}")
+        return None, "Không thể cập nhật thông tin", 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def change_password(user_id, data):
+    """Đổi mật khẩu."""
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
+
+    if not current_password or not new_password:
+        return "Vui lòng nhập đủ mật khẩu hiện tại và mật khẩu mới", 400
+    if not validate_password(new_password):
+        return "Mật khẩu mới phải có ít nhất 4 ký tự", 400
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT password_hash FROM users WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        if not user or not check_password_hash(user['password_hash'], current_password):
+            return "Mật khẩu hiện tại không đúng", 401
+
+        cursor.execute(
+            "UPDATE users SET password_hash = %s WHERE id = %s",
+            (generate_password_hash(new_password), user_id)
+        )
+        conn.commit()
+        return None, 200
+    except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
+        print(f"Change Password Error: {err}")
+        return "Không thể đổi mật khẩu", 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 def set_default_address(user_id, address_id):
     """Đặt một địa chỉ của user làm mặc định."""
     conn = None
