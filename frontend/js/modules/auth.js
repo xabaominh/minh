@@ -181,7 +181,7 @@ export function setupAuth() {
         updateAuthUI();
         document.getElementById('userDropdown')?.classList.remove('show');
         showNotification('Đã đăng xuất', 'info');
-        if (state.currentView === 'orders' || state.currentView === 'admin') switchView('home');
+        if (state.currentView === 'orders' || state.currentView === 'account' || state.currentView === 'admin') switchView('home');
     });
 
     // Trang quản lý
@@ -196,6 +196,13 @@ export function setupAuth() {
         e.preventDefault();
         document.getElementById('userDropdown')?.classList.remove('show');
         switchView('orders');
+    });
+
+    // Thông tin tài khoản
+    document.getElementById('viewAccountBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('userDropdown')?.classList.remove('show');
+        switchView('account');
     });
 }
 

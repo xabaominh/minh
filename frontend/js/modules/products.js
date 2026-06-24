@@ -308,6 +308,25 @@ export function setupSearch() {
             if (headerSearch) headerSearch.value = e.target.value;
             doSearch(e.target.value);
         });
+    } else {
+        // If collection search input is not in DOM yet (collection view not loaded),
+        // attach a one-time handler to wire it when the view is displayed.
+        const attachWhenCollectionVisible = (ev) => {
+            try {
+                const detail = ev && ev.detail;
+                if (!detail || detail.viewName !== 'collection') return;
+                const cs = document.getElementById('searchInputCollection');
+                if (cs) {
+                    cs.addEventListener('input', (e) => {
+                        if (headerSearch) headerSearch.value = e.target.value;
+                        doSearch(e.target.value);
+                    });
+                }
+            } finally {
+                window.removeEventListener('viewChanged', attachWhenCollectionVisible);
+            }
+        };
+        window.addEventListener('viewChanged', attachWhenCollectionVisible);
     }
 }
 

@@ -15,6 +15,7 @@ import {
     setupSearch, setupSorting, setupPriceFilter, setupProductModal, setupScrollReveal
 } from './modules/products.js';
 import { loadOrders } from './modules/orders.js';
+import { loadAccount } from './modules/account.js';
 import { setupChat, updateChatVisibility } from './modules/chat.js';
 
 
@@ -96,6 +97,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (viewName === 'orders') {
             loadOrders();
+        }
+
+        if (viewName === 'account') {
+            loadAccount();
         }
 
         if (viewName === 'admin') {

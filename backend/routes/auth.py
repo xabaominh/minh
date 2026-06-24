@@ -6,7 +6,10 @@ from services.auth_service import (
     get_profile,
     get_user_addresses,
     add_user_address,
-    set_default_address
+    set_default_address,
+    update_profile,
+    change_password,
+    update_user_address
 )
 
 auth_bp = Blueprint('auth', __name__)
@@ -55,10 +58,19 @@ def logout():
     return jsonify({"message": "Đã đăng xuất"}), 200
 
 
-@auth_bp.route('/api/profile', methods=['GET'])
+@auth_bp.route('/api/profile', methods=['GET', 'PUT'])
 def profile():
     if 'user_id' not in session:
+        if request.method == 'PUT':
+            return jsonify({"error": "Vui lòng đăng nhập"}), 401
         return jsonify({"logged_in": False}), 200
+
+    if request.method == 'PUT':
+        data = request.get_json(silent=True) or {}
+        user, error, status = update_profile(session['user_id'], data)
+        if error:
+            return jsonify({"error": error}), status
+        return jsonify({"message": "Đã cập nhật thông tin", "user": user}), status
 
     user = get_profile(session['user_id'])
     if not user:
@@ -87,6 +99,16 @@ def create_address():
     return jsonify({"message": "Đã lưu địa chỉ", "address": address}), status
 
 
+@auth_bp.route('/api/addresses/<int:address_id>', methods=['PUT'])
+@login_required
+def edit_address(address_id):
+    data = request.get_json(silent=True) or {}
+    address, error, status = update_user_address(session['user_id'], address_id, data)
+    if error:
+        return jsonify({"error": error}), status
+    return jsonify({"message": "Đã cập nhật địa chỉ", "address": address}), status
+
+
 @auth_bp.route('/api/addresses/<int:address_id>/default', methods=['PUT'])
 @login_required
 def make_default_address(address_id):
@@ -94,3 +116,13 @@ def make_default_address(address_id):
     if error:
         return jsonify({"error": error}), status
     return jsonify({"message": "Đã đặt làm địa chỉ mặc định"}), 200
+
+
+@auth_bp.route('/api/password', methods=['PUT'])
+@login_required
+def password():
+    data = request.get_json(silent=True) or {}
+    result, error, status = change_password(session['user_id'], data)
+    if error:
+        return jsonify({"error": error}), status
+    return jsonify(result), status
