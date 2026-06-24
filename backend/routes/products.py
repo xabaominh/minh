@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from services.product_service import get_products, get_product_detail
 
 products_bp = Blueprint('products', __name__)
@@ -20,7 +20,7 @@ def list_products():
 
 @products_bp.route('/api/products/<int:product_id>', methods=['GET'])
 def product_detail(product_id):
-    product, error = get_product_detail(product_id)
+    product, error = get_product_detail(product_id, session.get('user_id'))
 
     if error:
         status = 404 if "Không tìm thấy" in error else 500

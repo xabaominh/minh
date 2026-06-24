@@ -16,6 +16,7 @@ import {
 } from './modules/products.js';
 import { loadOrders } from './modules/orders.js';
 import { loadAccount } from './modules/account.js';
+import { loadProductDetail } from './modules/product_detail.js';
 import { setupChat, updateChatVisibility } from './modules/chat.js';
 
 
@@ -101,6 +102,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (viewName === 'account') {
             loadAccount();
+        }
+
+        if (viewName === 'product-detail') {
+            loadProductDetail();
         }
 
         if (viewName === 'admin') {

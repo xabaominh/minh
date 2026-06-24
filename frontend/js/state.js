@@ -22,6 +22,8 @@ export const state = {
     currentCategoryId: '',
     currentSearch: '',
     currentView: 'home',
+    currentProductId: null,
+    currentProduct: null,
     currentUser: null,
     userAddresses: []
 };

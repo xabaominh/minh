@@ -1,6 +1,7 @@
 import mysql.connector
 from database import get_db
 from utils.helpers import decimal_to_float
+from services.review_service import get_product_review_data
 
 
 def get_categories():
@@ -80,8 +81,8 @@ def get_products(category_id=None, search=None, limit=None, include_inactive=Fal
             conn.close()
 
 
-def get_product_detail(product_id):
-    """Lấy chi tiết 1 sản phẩm kèm ảnh phụ."""
+def get_product_detail(product_id, user_id=None):
+    """Lấy chi tiết 1 sản phẩm kèm ảnh phụ và dữ liệu đánh giá."""
     conn = None
     cursor = None
     try:
@@ -109,6 +110,15 @@ def get_product_detail(product_id):
         cursor.execute("SELECT id, image_url AS url FROM product_images WHERE product_id = %s ORDER BY display_order", (product_id,))
         images = cursor.fetchall()
         product['images'] = images
+
+        review_data, review_error = get_product_review_data(product_id, user_id=user_id)
+        if review_error:
+            return None, review_error
+
+        product['review_summary'] = review_data.get('summary', {})
+        product['reviews'] = review_data.get('reviews', [])
+        product['can_review'] = review_data.get('can_review', False)
+        product['user_review'] = review_data.get('user_review')
 
         return decimal_to_float(product), None
 

@@ -40,6 +40,7 @@ if __name__ == '__main__':
     print("  LuxDecor API Server v3 — Restructured")
     print("  Auth:       /api/register, /api/login, /api/logout")
     print("  Products:   /api/products, /api/products/<id>")
+    print("  Reviews:    /api/products/<id>/reviews")
     print("  Categories: /api/categories")
     print("  Cart:       /api/cart, /api/cart/add, /api/cart/merge")
     print("  Orders:     /api/orders, /api/orders/<id>")

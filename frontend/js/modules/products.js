@@ -5,6 +5,7 @@
 import { API_BASE, state } from '../state.js';
 import { formatPrice, showNotification, addToCart, syncCartFromServer, closeCheckoutModal } from './cart.js';
 import { optimizeProductImage } from '../imageUtils.js';
+import { switchView } from '../router.js';
 
 // ===== CATEGORIES =====
 export async function loadCategoriesData() {
@@ -361,67 +362,9 @@ export function closeProductModal() {
 }
 
 export async function openProductModal(productId) {
-    const modal = document.getElementById('productModal');
-    const overlay = document.getElementById('overlay');
-    const body = document.getElementById('productModalBody');
-    if (!modal || !body) return;
-
-    modal.classList.add('active');
-    if (overlay) overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    body.innerHTML = '<div class="loading-products"><div class="spinner-small"></div><p>Đang tải thông tin sản phẩm...</p></div>';
-
-    try {
-        const res = await fetch(`${API_BASE}/products/${productId}`);
-        if (!res.ok) throw new Error('API Error');
-        const p = await res.json();
-        const thumb = optimizeProductImage(p.thumbnail_url);
-
-        const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        let imagesHtml = `<img src="${thumb}" class="gallery-thumb active" onclick="window._products.changeMainImage(this, '${thumb}')">`;
-        if (p.images && p.images.length > 0) {
-            p.images.forEach(img => {
-                const optimized = optimizeProductImage(img.url);
-                imagesHtml += `<img src="${optimized}" class="gallery-thumb" onclick="window._products.changeMainImage(this, '${optimized}')">`;
-            });
-        }
-
-        body.innerHTML = `
-            <div class="product-detail-layout">
-                <div class="product-detail-images">
-                    <div class="main-image-wrapper">
-                        <img src="${thumb}" id="mainProductImage" alt="${p.product_name}" decoding="async">
-                    </div>
-                    <div class="gallery-images">${imagesHtml}</div>
-                </div>
-                <div class="product-detail-info">
-                    <div class="product-detail-category">${p.category_name}</div>
-                    <h2>${p.product_name}</h2>
-                    <div class="product-detail-price">${formatPrice(p.price)}</div>
-                    <p class="product-detail-desc">${p.description || 'Không có mô tả cho sản phẩm này.'}</p>
-                    <div class="product-specs">
-                        <p><strong>Tình trạng:</strong> ${p.stock_quantity > 0 ? '<span style="color:#27ae60">Còn hàng (' + p.stock_quantity + ')</span>' : '<span style="color:#e74c3c">Hết hàng</span>'}</p>
-                        ${p.dimensions ? `<p><strong>Kích thước:</strong> ${p.dimensions}</p>` : ''}
-                        ${p.wood_material ? `<p><strong>Chất liệu:</strong> ${p.wood_material}</p>` : ''}
-                    </div>
-                    <div class="product-detail-actions">
-                        <div class="product-qty-selector">
-                            <button class="product-qty-btn" onclick="window._products.changeModalQty(-1)">-</button>
-                            <input type="number" class="product-qty-input" id="modalQtyInput" value="1" min="1" max="${p.stock_quantity > 0 ? p.stock_quantity : 1}">
-                            <button class="product-qty-btn" onclick="window._products.changeModalQty(1)">+</button>
-                        </div>
-                        <button class="product-add-btn" 
-                                onclick="window._products.addToCartFromModal(${p.id}, '${safeName}', ${p.price}, '${thumb}')"
-                                ${p.stock_quantity <= 0 ? 'disabled' : ''}>
-                            <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    } catch (err) {
-        body.innerHTML = '<div class="loading-products error"><i class="fas fa-exclamation-triangle"></i><p>Không thể tải thông tin sản phẩm.</p></div>';
-    }
+    state.currentProductId = productId;
+    sessionStorage.setItem('luxdecor_current_product_id', String(productId));
+    await switchView('product-detail');
 }
 
 function changeMainImage(element, url) {

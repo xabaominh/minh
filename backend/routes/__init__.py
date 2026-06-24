@@ -5,6 +5,7 @@ def register_routes(app):
     from .categories import categories_bp
     from .cart import cart_bp
     from .orders import orders_bp
+    from .reviews import reviews_bp
     from .admin import admin_bp
     from .chat import chat_bp
 
@@ -13,5 +14,6 @@ def register_routes(app):
     app.register_blueprint(categories_bp)
     app.register_blueprint(cart_bp)
     app.register_blueprint(orders_bp)
+    app.register_blueprint(reviews_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(chat_bp)
