@@ -362,9 +362,12 @@ export async function openProductModal(productId, options = {}) {
     body.innerHTML = '<div class="loading-products"><div class="spinner-small"></div><p>Đang tải thông tin sản phẩm...</p></div>';
 
     try {
+        const reviewUrl = options.orderId
+            ? `${API_BASE}/products/${productId}/reviews?order_id=${options.orderId}`
+            : `${API_BASE}/products/${productId}/reviews`;
         const [productRes, reviewRes] = await Promise.all([
             fetch(`${API_BASE}/products/${productId}`),
-            fetch(`${API_BASE}/products/${productId}/reviews`, { credentials: 'include' })
+            fetch(reviewUrl, { credentials: 'include' })
         ]);
         if (!productRes.ok) throw new Error('API Error');
         const p = await productRes.json();
@@ -440,7 +443,7 @@ export async function openProductModal(productId, options = {}) {
             </div>
         `;
 
-        setupReviewForm(productId);
+        setupReviewForm(productId, options);
 
         if (options.focusReview) {
             requestAnimationFrame(() => {
@@ -458,7 +461,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function setupReviewForm(productId) {
+function setupReviewForm(productId, options = {}) {
     const picker = document.getElementById('reviewStarPicker');
     const form = document.getElementById('reviewForm');
     if (!picker || !form) return;
@@ -482,19 +485,22 @@ function setupReviewForm(productId) {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
+            const payload = {
+                rating: selectedRating,
+                comment: document.getElementById('reviewComment')?.value.trim()
+            };
+            if (options.orderId) payload.order_id = options.orderId;
+
             const res = await fetch(`${API_BASE}/products/${productId}/reviews`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    rating: selectedRating,
-                    comment: document.getElementById('reviewComment')?.value.trim()
-                })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Không thể gửi đánh giá');
             showNotification('Đã gửi đánh giá', 'success');
-            openProductModal(productId);
+            openProductModal(productId, options);
         } catch (err) {
             showNotification(err.message, 'error');
         }

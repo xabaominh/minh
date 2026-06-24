@@ -147,6 +147,7 @@ def get_user_orders(user_id):
                        EXISTS(
                            SELECT 1 FROM reviews r
                            WHERE r.user_id = %s AND r.product_id = oi.product_id
+                             AND r.order_id = oi.order_id
                        ) AS reviewed
                 FROM order_items oi
                 LEFT JOIN products p ON oi.product_id = p.id

@@ -45,7 +45,7 @@ export async function loadOrders() {
                 const reviewAction = isCompleted && item.product_id
                     ? (item.reviewed
                         ? `<span class="order-reviewed-badge"><i class="fas fa-check-circle"></i> Đã đánh giá</span>`
-                        : `<button type="button" class="order-review-btn" onclick="window._orderReview(event, ${item.product_id})" title="Viết đánh giá cho sản phẩm này">
+                        : `<button type="button" class="order-review-btn" onclick="window._orderReview(event, ${item.product_id}, ${order.id})" title="Viết đánh giá cho đơn hàng này">
                                <i class="fas fa-star"></i> Đánh giá
                            </button>`)
                     : '';
@@ -109,11 +109,11 @@ window._orderContact = (event, orderId, orderStatus) => {
     sendOrderContact(orderId, orderStatus);
 };
 
-window._orderReview = (event, productId) => {
+window._orderReview = (event, productId, orderId) => {
     if (event) {
         event.stopPropagation();
     }
     if (window._products?.openProductModal) {
-        window._products.openProductModal(productId, { focusReview: true });
+        window._products.openProductModal(productId, { focusReview: true, orderId });
     }
 };

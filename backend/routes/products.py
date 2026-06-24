@@ -44,8 +44,9 @@ def product_reviews(product_id):
     summary, _ = get_review_summary(product_id)
     can_review = False
     review_message = None
+    order_id = request.args.get('order_id', type=int)
     if session.get('user_id'):
-        can_review, review_message = can_user_review(session['user_id'], product_id)
+        can_review, review_message = can_user_review(session['user_id'], product_id, order_id)
     else:
         review_message = "Đăng nhập để viết đánh giá sản phẩm"
     return jsonify({
@@ -64,7 +65,8 @@ def add_product_review(product_id):
         session['user_id'],
         product_id,
         data.get('rating'),
-        data.get('comment', '')
+        data.get('comment', ''),
+        data.get('order_id')
     )
     if error:
         return jsonify({"error": error}), status
