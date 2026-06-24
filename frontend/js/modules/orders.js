@@ -74,7 +74,7 @@ export async function loadOrders() {
                     <p><i class="fas fa-credit-card"></i> ${order.payment_method === 'COD' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản'}</p>
                 </div>
                 <div class="order-card-footer">
-                    <button class="order-contact-btn" onclick="window._orderContact(${order.id}, '${order.order_status}')" title="Liên hệ hỗ trợ về đơn hàng này">
+                    <button class="order-contact-btn" onclick="window._orderContact(event, ${order.id}, '${order.order_status}')" title="Liên hệ hỗ trợ về đơn hàng này">
                         <i class="fas fa-headset"></i> Liên hệ
                     </button>
                     <div>
@@ -90,4 +90,9 @@ export async function loadOrders() {
     }
 }
 
-window._orderContact = sendOrderContact;
+window._orderContact = (event, orderId, orderStatus) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    sendOrderContact(orderId, orderStatus);
+};

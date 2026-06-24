@@ -35,7 +35,7 @@ export function setupChat() {
     });
     document.addEventListener('click', (e) => {
         if (!chatOpen || !panel) return;
-        if (panel.contains(e.target) || fab?.contains(e.target) || headerBtn?.contains(e.target)) return;
+        if (panel.contains(e.target) || fab?.contains(e.target) || headerBtn?.contains(e.target) || e.target.closest('.order-contact-btn')) return;
         closeChat();
     });
 
@@ -231,7 +231,7 @@ function linkifyOrderRefs(html) {
 }
 
 /**
- * Mở chat và gửi tin nhắn hỗ trợ về đơn hàng.
+ * Mở chat và tự động gửi tin nhắn hỗ trợ về đơn hàng.
  */
 export async function sendOrderContact(orderId, orderStatus) {
     if (!state.currentUser) {
@@ -257,13 +257,10 @@ export async function sendOrderContact(orderId, orderStatus) {
             body: JSON.stringify({ body })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Gửi thất bại');
-
-        renderMessages([data.data], true);
-        showNotification('Đã gửi yêu cầu hỗ trợ đến admin!', 'success');
-    } catch (e) {
-        showNotification(e.message, 'error');
-    }
+        if (res.ok) {
+            renderMessages([data.data], true);
+        }
+    } catch (_) { /* silent */ }
 }
 
 export { updateBadge as updateChatBadge };
