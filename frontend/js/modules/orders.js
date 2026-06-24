@@ -4,6 +4,7 @@
 
 import { API_BASE, state } from '../state.js';
 import { formatPrice } from './cart.js';
+import { sendOrderContact } from './chat.js';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -73,8 +74,13 @@ export async function loadOrders() {
                     <p><i class="fas fa-credit-card"></i> ${order.payment_method === 'COD' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản'}</p>
                 </div>
                 <div class="order-card-footer">
-                    <span class="order-footer-label">Tổng cộng:</span>
-                    <strong>${formatPrice(order.total_amount)}</strong>
+                    <button class="order-contact-btn" onclick="window._orderContact(${order.id}, '${order.order_status}')" title="Liên hệ hỗ trợ về đơn hàng này">
+                        <i class="fas fa-headset"></i> Liên hệ
+                    </button>
+                    <div>
+                        <span class="order-footer-label">Tổng cộng:</span>
+                        <strong>${formatPrice(order.total_amount)}</strong>
+                    </div>
                 </div>
             </div>
         `}).join('');
@@ -83,3 +89,5 @@ export async function loadOrders() {
         container.innerHTML = '<div class="loading-products error"><i class="fas fa-exclamation-triangle"></i><p>Không thể tải đơn hàng.</p></div>';
     }
 }
+
+window._orderContact = sendOrderContact;

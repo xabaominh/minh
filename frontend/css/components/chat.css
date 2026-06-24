@@ -176,6 +176,27 @@
     color: var(--text-muted);
 }
 
+/* Order reference links in chat */
+.chat-order-link {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.chat-order-link:hover {
+    opacity: 0.8;
+}
+
+.chat-bubble.mine .chat-order-link {
+    color: #bde0ff;
+}
+
+.chat-bubble.theirs .chat-order-link {
+    color: #2563eb;
+}
+
 .chat-input-area {
     display: flex;
     gap: 8px;

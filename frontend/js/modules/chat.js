@@ -118,7 +118,7 @@ function renderMessages(messages, append = false) {
         bubble.className = `chat-bubble ${msg.is_mine ? 'mine' : 'theirs'}`;
         bubble.dataset.id = msg.id;
         const sender = msg.is_mine ? 'Bạn' : (msg.full_name || msg.username || 'Hỗ trợ');
-        bubble.innerHTML = `<span class="chat-text">${escapeHtml(msg.body)}</span><span class="chat-meta">${escapeHtml(sender)} · ${formatTime(msg.created_at)}</span>`;
+        bubble.innerHTML = `<span class="chat-text">${linkifyOrderRefs(escapeHtml(msg.body))}</span><span class="chat-meta">${escapeHtml(sender)} · ${formatTime(msg.created_at)}</span>`;
         container.appendChild(bubble);
     });
 
@@ -222,6 +222,48 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function linkifyOrderRefs(html) {
+    return html.replace(/(đơn\s*hàng\s*)?#(\d+)/gi, (match, prefix, id) => {
+        return `<a href="javascript:void(0)" class="chat-order-link" data-order-id="${id}" title="Xem đơn hàng #${id}">${match}</a>`;
+    });
+}
+
+/**
+ * Mở chat và gửi tin nhắn hỗ trợ về đơn hàng.
+ */
+export async function sendOrderContact(orderId, orderStatus) {
+    if (!state.currentUser) {
+        openAuthModal('login');
+        showNotification('Vui lòng đăng nhập để chat với hỗ trợ', 'info');
+        return;
+    }
+
+    const statusMap = {
+        'PENDING': 'Chờ xác nhận', 'CONFIRMED': 'Đã xác nhận',
+        'SHIPPING': 'Đang giao', 'COMPLETED': 'Hoàn thành', 'CANCELLED': 'Đã hủy'
+    };
+    const statusLabel = statusMap[orderStatus] || orderStatus;
+    const body = `Tôi cần hỗ trợ về đơn hàng #${orderId} (${statusLabel}). Vui lòng kiểm tra giúp tôi.`;
+
+    await openChat();
+
+    try {
+        const res = await fetch(`${API_BASE}/chat/messages`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ body })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gửi thất bại');
+
+        renderMessages([data.data], true);
+        showNotification('Đã gửi yêu cầu hỗ trợ đến admin!', 'success');
+    } catch (e) {
+        showNotification(e.message, 'error');
+    }
 }
 
 export { updateBadge as updateChatBadge };

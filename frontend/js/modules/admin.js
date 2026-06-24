@@ -328,11 +328,71 @@ function renderAdminChatMessages(messages, append = false) {
         const isStaff = msg.sender_role === 'ADMIN';
         bubble.className = `chat-bubble ${isStaff ? 'mine' : 'theirs'}`;
         const sender = isStaff ? 'Bạn' : (msg.full_name || msg.username || 'Khách');
-        bubble.innerHTML = `<span class="chat-text">${escapeHtml(msg.body)}</span><span class="chat-meta">${escapeHtml(sender)} · ${formatChatTime(msg.created_at)}</span>`;
+        bubble.innerHTML = `<span class="chat-text">${linkifyAdminOrderRefs(escapeHtml(msg.body))}</span><span class="chat-meta">${escapeHtml(sender)} · ${formatChatTime(msg.created_at)}</span>`;
         container.appendChild(bubble);
     });
 
+    // Gắn click handler cho các link đơn hàng
+    container.querySelectorAll('.chat-order-link:not([data-bound])').forEach(link => {
+        link.setAttribute('data-bound', '1');
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const orderId = link.dataset.orderId;
+            navigateToAdminOrder(orderId);
+        });
+    });
+
     container.scrollTop = container.scrollHeight;
+}
+
+function linkifyAdminOrderRefs(html) {
+    return html.replace(/(đơn\s*hàng\s*)?#(\d+)/gi, (match, prefix, id) => {
+        return `<a href="javascript:void(0)" class="chat-order-link" data-order-id="${id}" title="Xem đơn hàng #${id}">${match}</a>`;
+    });
+}
+
+async function navigateToAdminOrder(orderId) {
+    // Chuyển sang tab orders
+    const ordersTabBtn = document.querySelector('.admin-tab-btn[data-tab="orders"]');
+    if (ordersTabBtn) ordersTabBtn.click();
+
+    // Đợi tab load xong rồi highlight đơn hàng
+    setTimeout(() => {
+        const rows = document.querySelectorAll('.admin-order-row');
+        for (const row of rows) {
+            const idCell = row.querySelector('td:first-child strong');
+            if (idCell && idCell.textContent.trim() === `#${orderId}`) {
+                // Mở detail row
+                const detailRow = row.nextElementSibling;
+                if (detailRow && detailRow.classList.contains('admin-order-detail-row')) {
+                    detailRow.classList.add('show');
+                }
+                // Highlight và scroll
+                row.style.background = 'rgba(37, 99, 235, 0.12)';
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => { row.style.background = ''; }, 3000);
+                return;
+            }
+        }
+        // Nếu không tìm thấy (có thể đang filter), load lại tất cả rồi thử lại
+        loadAdminOrders('');
+        setTimeout(() => {
+            const retryRows = document.querySelectorAll('.admin-order-row');
+            for (const row of retryRows) {
+                const idCell = row.querySelector('td:first-child strong');
+                if (idCell && idCell.textContent.trim() === `#${orderId}`) {
+                    const detailRow = row.nextElementSibling;
+                    if (detailRow && detailRow.classList.contains('admin-order-detail-row')) {
+                        detailRow.classList.add('show');
+                    }
+                    row.style.background = 'rgba(37, 99, 235, 0.12)';
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => { row.style.background = ''; }, 3000);
+                    return;
+                }
+            }
+        }, 800);
+    }, 500);
 }
 
 async function sendAdminChatMessage() {
