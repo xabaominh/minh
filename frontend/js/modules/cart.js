@@ -127,7 +127,11 @@ function copyText(text) {
 export async function mergeLocalCart() {
     if (!state.currentUser || state.cart.length === 0) return;
     try {
-        const items = state.cart.map(item => ({ product_id: item.id, quantity: item.quantity }));
+        const items = state.cart.map(item => ({ 
+            product_id: item.id, 
+            quantity: item.quantity,
+            variant_id: item.variant_id
+        }));
         await fetch(`${API_BASE}/cart/merge`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -153,7 +157,9 @@ export async function syncCartFromServer() {
                 name: item.product_name,
                 price: item.unit_price ?? item.price,
                 image: item.thumbnail_url,
-                quantity: item.quantity
+                quantity: item.quantity,
+                variant_id: item.variant_id,
+                variant_name: item.variant_name
             }));
             updateCartUI();
         } else if (res.status === 401) {
@@ -206,7 +212,11 @@ export async function removeFromCart(idOrItemId) {
             await syncCartFromServer();
         } catch (e) {}
     } else {
-        state.cart = state.cart.filter(item => item.id !== idOrItemId);
+        const parts = String(idOrItemId).split('_');
+        const pid = parseInt(parts[0]);
+        const vid = parts[1] && parts[1] !== '0' ? parseInt(parts[1]) : null;
+
+        state.cart = state.cart.filter(item => !(item.id === pid && (item.variant_id || null) === vid));
         localStorage.setItem('luxdecor_cart', JSON.stringify(state.cart));
         updateCartUI();
     }
@@ -230,7 +240,11 @@ export async function changeQuantity(idOrItemId, delta) {
             renderCartItems();
         } catch (e) {}
     } else {
-        const item = state.cart.find(i => i.id === idOrItemId);
+        const parts = String(idOrItemId).split('_');
+        const pid = parseInt(parts[0]);
+        const vid = parts[1] && parts[1] !== '0' ? parseInt(parts[1]) : null;
+
+        const item = state.cart.find(i => i.id === pid && (item.variant_id || null) === vid);
         if (!item) return;
         item.quantity += delta;
         if (item.quantity <= 0) { removeFromCart(idOrItemId); return; }
@@ -277,14 +291,15 @@ export function renderCartItems() {
     const isLoggedIn = !!state.currentUser;
 
     container.innerHTML = state.cart.map(item => {
-        const removeId = isLoggedIn ? item.item_id : item.id;
-        const changeId = isLoggedIn ? item.item_id : item.id;
+        const removeId = isLoggedIn ? item.item_id : `'${item.id}_${item.variant_id || 0}'`;
+        const changeId = isLoggedIn ? item.item_id : `'${item.id}_${item.variant_id || 0}'`;
         return `
         <div class="cart-item">
             <img src="${optimizeProductImage(item.image)}" alt="${item.name}" loading="lazy" decoding="async"
                  onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&q=60'">
             <div class="cart-item-info">
                 <h4>${item.name}</h4>
+                ${item.variant_name ? `<p class="cart-item-variant" style="font-size:0.8rem; color:var(--text-muted); margin:2px 0 4px;">Phân loại: ${item.variant_name}</p>` : ''}
                 <p class="cart-item-price">${formatPrice(item.price)}</p>
                 <div class="cart-item-qty">
                     <button onclick="window._cart.changeQuantity(${changeId}, -1)">−</button>

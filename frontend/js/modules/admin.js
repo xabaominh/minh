@@ -204,7 +204,8 @@ window._adminUtils = {
     updateOrderStatus,
     refreshAdminChat,
     selectAdminConversation,
-    closeAdminConversation
+    closeAdminConversation,
+    addVariantRow
 };
 
 function setupAdminChatForm() {
@@ -580,24 +581,36 @@ function openProductModal(productId = null) {
         
         if (isEditingProduct) {
             title.textContent = 'Sửa Sản phẩm';
-            const p = adminProducts.find(x => x.id === productId);
-            if (p) {
-                document.getElementById('ap_id').value = p.id;
-                document.getElementById('ap_name').value = p.product_name || '';
-                document.getElementById('ap_sku').value = p.sku || '';
-                document.getElementById('ap_category').value = p.category_id || '';
-                document.getElementById('ap_price').value = p.price || '';
-                document.getElementById('ap_discount').value = p.discount_price || '';
-                document.getElementById('ap_stock').value = p.stock_quantity || 0;
-                document.getElementById('ap_thumbnail').value = p.thumbnail_url || '';
-                document.getElementById('ap_active').value = p.is_active ? 'true' : 'false';
-                document.getElementById('ap_description').value = p.description || '';
-            } else {
-                console.warn("Không tìm thấy dữ liệu cho ID:", productId);
-            }
+            
+            // Xóa danh sách biến thể cũ trong form
+            renderAdminProductVariants([]);
+            
+            // Lấy thông tin chi tiết sản phẩm bao gồm biến thể từ API
+            fetch(`${API_BASE}/products/${productId}`)
+                .then(res => res.json())
+                .then(p => {
+                    document.getElementById('ap_id').value = p.id;
+                    document.getElementById('ap_name').value = p.product_name || '';
+                    document.getElementById('ap_sku').value = p.sku || '';
+                    document.getElementById('ap_category').value = p.category_id || '';
+                    document.getElementById('ap_price').value = p.price || '';
+                    document.getElementById('ap_discount').value = p.discount_price || '';
+                    document.getElementById('ap_stock').value = p.stock_quantity || 0;
+                    document.getElementById('ap_thumbnail').value = p.thumbnail_url || '';
+                    document.getElementById('ap_active').value = p.is_active ? 'true' : 'false';
+                    document.getElementById('ap_description').value = p.description || '';
+                    
+                    // Render danh sách biến thể
+                    renderAdminProductVariants(p.variants || []);
+                })
+                .catch(err => {
+                    console.error("Lỗi tải chi tiết sản phẩm:", err);
+                    alert("Không thể tải chi tiết biến thể sản phẩm.");
+                });
         } else {
             title.textContent = 'Thêm Sản phẩm';
             document.getElementById('ap_id').value = '';
+            renderAdminProductVariants([]);
         }
         
         modal.style.setProperty('display', 'block', 'important');
@@ -605,6 +618,40 @@ function openProductModal(productId = null) {
         console.error("Lỗi khi mở modal:", err);
         alert("Lỗi khi mở modal: " + err.message);
     }
+}
+
+function renderAdminProductVariants(variants) {
+    const container = document.getElementById('adminProductVariantsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    if (variants && variants.length > 0) {
+        variants.forEach(v => {
+            addVariantRow(v);
+        });
+    }
+}
+
+function addVariantRow(v = {}) {
+    const container = document.getElementById('adminProductVariantsContainer');
+    if (!container) return;
+    
+    const row = document.createElement('div');
+    row.className = 'admin-variant-row';
+    if (v.id) row.dataset.variantId = v.id;
+    
+    row.innerHTML = `
+        <input type="text" class="var-name" placeholder="Phân loại (vd: Đỏ / S)" value="${escapeHtml(v.variant_name || '')}" required>
+        <input type="text" class="var-sku" placeholder="SKU" value="${escapeHtml(v.sku || '')}" required>
+        <input type="number" class="var-price" placeholder="Giá" value="${v.price || ''}" required>
+        <input type="number" class="var-discount" placeholder="KM" value="${v.discount_price || ''}">
+        <input type="number" class="var-stock" placeholder="Kho" value="${v.stock_quantity ?? 0}">
+        <input type="text" class="var-thumb" placeholder="Ảnh URL" value="${escapeHtml(v.thumbnail_url || '')}">
+        <button type="button" class="delete-var-btn" onclick="this.parentElement.remove()" title="Xóa">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    `;
+    container.appendChild(row);
 }
 
 function closeProductModal() {
@@ -630,6 +677,22 @@ async function saveProduct(e) {
         is_active: document.getElementById('ap_active').value === 'true',
         description: document.getElementById('ap_description').value.trim() || null
     };
+
+    // Đọc danh sách các biến thể từ giao diện
+    const variantRows = document.querySelectorAll('.admin-variant-row');
+    const variants = Array.from(variantRows).map(row => {
+        const discountInput = row.querySelector('.var-discount').value;
+        return {
+            id: row.dataset.variantId ? parseInt(row.dataset.variantId) : null,
+            variant_name: row.querySelector('.var-name').value.trim(),
+            sku: row.querySelector('.var-sku').value.trim(),
+            price: parseFloat(row.querySelector('.var-price').value) || 0,
+            discount_price: discountInput ? parseFloat(discountInput) : null,
+            stock_quantity: parseInt(row.querySelector('.var-stock').value) || 0,
+            thumbnail_url: row.querySelector('.var-thumb').value.trim() || null
+        };
+    });
+    data.variants = variants;
 
     try {
         const url = isEditingProduct ? `${API_BASE}/admin/products/${productId}` : `${API_BASE}/admin/products`;

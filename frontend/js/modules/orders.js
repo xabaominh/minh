@@ -53,7 +53,10 @@ export async function loadOrders() {
                 <div class="order-item-row">
                     <img class="order-item-thumb" src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}">
                     <div class="order-item-info">
-                        <span class="order-item-name">${escapeHtml(item.product_name)}</span>
+                        <span class="order-item-name">
+                            ${escapeHtml(item.product_name)}
+                            ${item.variant_name ? `<span class="order-item-variant" style="font-size:0.8rem;color:var(--text-muted);display:block;margin-top:2px;">Phân loại: ${escapeHtml(item.variant_name)}</span>` : ''}
+                        </span>
                         <span class="order-item-qty">x${item.quantity}</span>
                     </div>
                     <div class="order-item-price">

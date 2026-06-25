@@ -174,3 +174,97 @@ INSERT INTO reviews (user_id, product_id, rating, comment) VALUES
 -- KD002 (Hộp Lưu Trữ Đa Năng)
 (5, 20, 5, 'Hộp vải dày dặn, cứng cáp, màu canvas sạch sẽ.'),
 (3, 20, 4, 'Tiện lợi để đựng đồ chơi cho bé hoặc quần áo xếp gọn.');
+
+-- =====================================
+-- 7. BIẾN THỂ SẢN PHẨM (PRODUCT VARIANTS)
+-- =====================================
+INSERT INTO product_variants (product_id, variant_name, sku, price, discount_price, stock_quantity, thumbnail_url) VALUES
+-- Sofa Xám Hiện Đại (product_id = 1)
+(1, 'Đệm Nỉ / Khung Gỗ Thông', 'PK001-NI', 13900000.00, 12900000.00, 10, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80'),
+(1, 'Đệm Da PU / Khung Thép', 'PK001-DA', 15900000.00, 14900000.00, 5, 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&q=80'),
+
+-- Sofa Góc Chữ L Nâu (product_id = 2)
+(2, 'Góc Trái / Da Bò Ý', 'PK002-TRAI', 22500000.00, 19900000.00, 4, 'https://images.pexels.com/photos/276566/pexels-photo-276566.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(2, 'Góc Phải / Da Bò Ý', 'PK002-PHAI', 22500000.00, 19900000.00, 4, 'https://images.pexels.com/photos/276566/pexels-photo-276566.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Bàn Trà Gỗ Sồi (product_id = 3)
+(3, 'Màu Tự Nhiên / Gỗ Sồi', 'PK003-NAT', 4500000.00, NULL, 12, 'https://images.pexels.com/photos/6661224/pexels-photo-6661224.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(3, 'Màu Hạt Dẻ / Gỗ Sồi', 'PK003-BRW', 4700000.00, 4400000.00, 8, 'https://images.pexels.com/photos/6661224/pexels-photo-6661224.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Kệ Tivi Gỗ Óc Chó (product_id = 4)
+(4, 'Kích thước 1m8 / Gỗ Óc Chó', 'PK004-18M', 8900000.00, NULL, 6, 'https://images.pexels.com/photos/1714433/pexels-photo-1714433.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(4, 'Kích thước 2m0 / Gỗ Óc Chó', 'PK004-20M', 9800000.00, 9200000.00, 4, 'https://images.pexels.com/photos/1714433/pexels-photo-1714433.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Ghế Thư Giãn Bành (product_id = 5)
+(5, 'Vải Nhung Xanh Dương / Chân Gỗ', 'PK005-BLU', 6700000.00, NULL, 6, 'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600&q=80'),
+(5, 'Vải Bố Màu Kem / Chân Gỗ', 'PK005-CRE', 6500000.00, 5900000.00, 6, 'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600&q=80'),
+
+-- Giường Ngủ Gỗ Hiện Đại (product_id = 6)
+(6, '1m6 x 2m / Gỗ Thông', 'PN001-16M', 11500000.00, 9900000.00, 5, 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&q=80'),
+(6, '1m8 x 2m / Gỗ Thông', 'PN001-18M', 12500000.00, 10900000.00, 5, 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&q=80'),
+
+-- Tủ Quần Áo 3 Cánh (product_id = 7)
+(7, 'Màu Vân Gỗ Sồi / MDF', 'PN002-OAK', 9800000.00, NULL, 4, 'https://images.pexels.com/photos/27562190/pexels-photo-27562190.png?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(7, 'Màu Trắng Sứ / MDF', 'PN002-WHT', 9800000.00, 8900000.00, 3, 'https://images.pexels.com/photos/27562190/pexels-photo-27562190.png?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Bàn Đầu Giường Nhỏ Gọn (product_id = 8)
+(8, 'Gỗ Cao Su Tự Nhiên', 'PN003-NAT', 2200000.00, NULL, 15, 'https://images.pexels.com/photos/6266190/pexels-photo-6266190.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(8, 'Sơn Trắng Cổ Điển', 'PN003-WHT', 2400000.00, 2100000.00, 10, 'https://images.pexels.com/photos/6266190/pexels-photo-6266190.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Đèn Ngủ Để Bàn (product_id = 9)
+(9, 'Chao Vải / Ánh Sáng Vàng', 'PN004-YEL', 890000.00, NULL, 20, 'https://images.pexels.com/photos/17994856/pexels-photo-17994856.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(9, 'Chao Vải / Ánh Sáng Trắng', 'PN004-WHT', 990000.00, 850000.00, 10, 'https://images.pexels.com/photos/17994856/pexels-photo-17994856.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Gương Trang Điểm LED (product_id = 10)
+(10, 'Kính Tròn Đường kính 60cm', 'PN005-60', 3500000.00, NULL, 10, 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&q=80'),
+(10, 'Kính Tròn Đường kính 80cm', 'PN005-80', 4200000.00, 3800000.00, 8, 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&q=80'),
+
+-- Bàn Ăn Gỗ Trắc 6 Ghế (product_id = 11)
+(11, 'Kèm 6 Ghế Bọc Nỉ / Gỗ Trắc', 'PA001-6G', 18900000.00, NULL, 3, 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600&q=80'),
+(11, 'Kèm 8 Ghế Bọc Nỉ / Gỗ Trắc', 'PA001-8G', 22900000.00, 20900000.00, 2, 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600&q=80'),
+
+-- Ghế Ăn Bọc Nệm Xám (product_id = 12)
+(12, 'Chân Thép Đen', 'PA002-DEN', 1800000.00, 1500000.00, 25, 'https://images.pexels.com/photos/15071703/pexels-photo-15071703.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(12, 'Chân Mạ Vàng', 'PA002-VANG', 2100000.00, 1800000.00, 15, 'https://images.pexels.com/photos/15071703/pexels-photo-15071703.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Tủ Rượu Gỗ Sồi (product_id = 13)
+(13, 'Bản Kính Trong Suốt / Gỗ Sồi', 'PA003-CLR', 7500000.00, NULL, 3, 'https://images.pexels.com/photos/27819659/pexels-photo-27819659.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(13, 'Bản Kính Mờ Cường Lực / Gỗ Sồi', 'PA003-FRT', 8000000.00, 7600000.00, 3, 'https://images.pexels.com/photos/27819659/pexels-photo-27819659.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Bàn Ăn Tròn Đá Marble (product_id = 14)
+(14, 'Đá Trắng Carrara / Chân Mạ Vàng', 'PA004-WHT', 14500000.00, NULL, 2, 'https://images.pexels.com/photos/32709576/pexels-photo-32709576.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(14, 'Đá Đen Nero Marquina / Chân Mạ Vàng', 'PA004-BLK', 15500000.00, 14500000.00, 2, 'https://images.pexels.com/photos/32709576/pexels-photo-32709576.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Ghế Công Thái Học Premium (product_id = 15)
+(15, 'Khung Đen / Lưới Đen', 'VP001-DEN', 5900000.00, 5200000.00, 12, 'https://images.pexels.com/photos/18435547/pexels-photo-18435547.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(15, 'Khung Trắng / Lưới Xám', 'VP001-XAM', 6200000.00, 5500000.00, 8, 'https://images.pexels.com/photos/18435547/pexels-photo-18435547.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Bàn Làm Việc Nâng Hạ (product_id = 16)
+(16, 'Mặt Tre 1m4 / Chân Đen', 'VP002-140', 8500000.00, NULL, 7, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600&q=80'),
+(16, 'Mặt Gỗ Óc Chó 1m6 / Chân Trắng', 'VP002-160', 10500000.00, 9500000.00, 5, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600&q=80'),
+
+-- Kệ Sách 5 Tầng (product_id = 17)
+(17, 'Khung Đen / Gỗ Óc Chó', 'VP003-DK', 3200000.00, NULL, 8, 'https://images.pexels.com/photos/4440116/pexels-photo-4440116.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(17, 'Khung Trắng / Gỗ Sồi', 'VP003-LT', 3200000.00, 2900000.00, 7, 'https://images.pexels.com/photos/4440116/pexels-photo-4440116.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Đèn Bàn LED Thông Minh (product_id = 18)
+(18, 'Màu Đen Nhám', 'VP004-BLK', 1200000.00, NULL, 20, 'https://images.pexels.com/photos/15519510/pexels-photo-15519510.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(18, 'Màu Trắng Tuyết', 'VP004-WHT', 1200000.00, NULL, 15, 'https://images.pexels.com/photos/15519510/pexels-photo-15519510.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Tủ Giày 4 Tầng (product_id = 19)
+(19, 'Cánh Lật / Vân Gỗ Sồi', 'KD001-OAK', 2800000.00, NULL, 12, 'https://images.pexels.com/photos/37595188/pexels-photo-37595188.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(19, 'Cánh Lật / Màu Walnut Trầm', 'KD001-WAL', 3000000.00, 2700000.00, 10, 'https://images.pexels.com/photos/37595188/pexels-photo-37595188.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+
+-- Hộp Lưu Trữ Đa Năng (product_id = 20)
+(20, 'Vải Canvas Màu Kem', 'KD002-CRE', 450000.00, NULL, 30, 'https://images.pexels.com/photos/9646747/pexels-photo-9646747.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop'),
+(20, 'Vải Canvas Màu Xám Ghi', 'KD002-GRY', 450000.00, NULL, 20, 'https://images.pexels.com/photos/9646747/pexels-photo-9646747.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop');
+
+-- Đồng bộ lại stock_quantity cho các sản phẩm chính có biến thể
+UPDATE products p
+INNER JOIN (
+    SELECT product_id, SUM(stock_quantity) as total_stock
+    FROM product_variants
+    GROUP BY product_id
+) v ON p.id = v.product_id
+SET p.stock_quantity = v.total_stock;
+

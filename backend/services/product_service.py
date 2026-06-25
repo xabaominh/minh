@@ -33,7 +33,8 @@ def get_products(category_id=None, search=None, limit=None, include_inactive=Fal
         query = """
             SELECT p.id, p.sku, p.product_name, p.slug, p.price, p.discount_price, p.thumbnail_url,
                    p.description, p.stock_quantity, p.attributes,
-                   p.is_active, c.id AS category_id, c.category_name, c.slug AS category_slug
+                   p.is_active, c.id AS category_id, c.category_name, c.slug AS category_slug,
+                   (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id) AS variant_count
             FROM products p
             JOIN categories c ON p.category_id = c.id
             WHERE p.deleted_at IS NULL
@@ -110,6 +111,11 @@ def get_product_detail(product_id):
         images = cursor.fetchall()
         product['images'] = images
 
+        # Lấy variants
+        cursor.execute("SELECT * FROM product_variants WHERE product_id = %s ORDER BY id", (product_id,))
+        variants = cursor.fetchall()
+        product['variants'] = decimal_to_float(variants)
+
         return decimal_to_float(product), None
 
     except mysql.connector.Error as err:
@@ -128,7 +134,7 @@ def create_product(data):
     cursor = None
     try:
         conn = get_db()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
         query = """
             INSERT INTO products (
@@ -157,8 +163,15 @@ def create_product(data):
         )
 
         cursor.execute(query, params)
+        product_id = cursor.lastrowid
+        
+        # Đồng bộ variants
+        variants = data.get('variants')
+        if variants:
+            sync_product_variants(cursor, product_id, variants)
+
         conn.commit()
-        return cursor.lastrowid, None
+        return product_id, None
     except mysql.connector.Error as err:
         print(f"Create Product Error: {err}")
         return None, "Không thể tạo sản phẩm. Vui lòng kiểm tra SKU hoặc Slug có bị trùng lặp không."
@@ -175,7 +188,7 @@ def update_product(product_id, data):
     cursor = None
     try:
         conn = get_db()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
         updates = []
         params = []
@@ -190,18 +203,19 @@ def update_product(product_id, data):
                 updates.append(f"{field} = %s")
                 params.append(data[field])
 
-        if not updates:
+        if not updates and 'variants' not in data:
             return False, "Không có dữ liệu cập nhật"
 
-        query = f"UPDATE products SET {', '.join(updates)} WHERE id = %s"
-        params.append(product_id)
+        if updates:
+            query = f"UPDATE products SET {', '.join(updates)} WHERE id = %s"
+            params.append(product_id)
+            cursor.execute(query, tuple(params))
 
-        cursor.execute(query, tuple(params))
+        # Đồng bộ variants
+        if 'variants' in data:
+            sync_product_variants(cursor, product_id, data['variants'])
+
         conn.commit()
-
-        if cursor.rowcount == 0:
-            return False, "Sản phẩm không tồn tại hoặc dữ liệu không thay đổi"
-            
         return True, None
     except mysql.connector.Error as err:
         print(f"Update Product Error: {err}")
@@ -211,6 +225,67 @@ def update_product(product_id, data):
             cursor.close()
         if conn:
             conn.close()
+
+
+def sync_product_variants(cursor, product_id, variants):
+    """Đồng bộ hóa danh sách biến thể của sản phẩm."""
+    if not isinstance(variants, list):
+        return
+
+    # Lấy ID biến thể hiện tại
+    cursor.execute("SELECT id FROM product_variants WHERE product_id = %s", (product_id,))
+    rows = cursor.fetchall()
+    existing_ids = set()
+    for row in rows:
+        if isinstance(row, dict):
+            existing_ids.add(row['id'])
+        else:
+            existing_ids.add(row[0])
+
+    keep_ids = set()
+    for var in variants:
+        var_id = var.get('id')
+        variant_name = var.get('variant_name')
+        sku = var.get('sku')
+        price = var.get('price')
+        discount_price = var.get('discount_price')
+        stock_quantity = var.get('stock_quantity', 0)
+        thumbnail_url = var.get('thumbnail_url')
+
+        if not variant_name or not sku or price is None:
+            continue  # Bỏ qua dòng lỗi
+
+        if var_id and int(var_id) in existing_ids:
+            # Cập nhật biến thể cũ
+            cursor.execute("""
+                UPDATE product_variants 
+                SET variant_name = %s, sku = %s, price = %s, discount_price = %s, stock_quantity = %s, thumbnail_url = %s
+                WHERE id = %s AND product_id = %s
+            """, (variant_name, sku, price, discount_price, stock_quantity, thumbnail_url, var_id, product_id))
+            keep_ids.add(int(var_id))
+        else:
+            # Tạo biến thể mới
+            cursor.execute("""
+                INSERT INTO product_variants (product_id, variant_name, sku, price, discount_price, stock_quantity, thumbnail_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (product_id, variant_name, sku, price, discount_price, stock_quantity, thumbnail_url))
+
+    # Xóa các biến thể không còn trong danh sách gửi lên
+    delete_ids = existing_ids - keep_ids
+    if delete_ids:
+        format_strings = ','.join(['%s'] * len(delete_ids))
+        cursor.execute(f"DELETE FROM product_variants WHERE id IN ({format_strings}) AND product_id = %s", tuple(list(delete_ids) + [product_id]))
+
+    # Tính tổng tồn kho của biến thể và đồng bộ vào sản phẩm chính
+    cursor.execute("SELECT SUM(stock_quantity) FROM product_variants WHERE product_id = %s", (product_id,))
+    total_stock_row = cursor.fetchone()
+    total_stock = 0
+    if total_stock_row:
+        if isinstance(total_stock_row, dict):
+            total_stock = list(total_stock_row.values())[0] or 0
+        else:
+            total_stock = total_stock_row[0] or 0
+    cursor.execute("UPDATE products SET stock_quantity = %s WHERE id = %s", (total_stock, product_id))
 
 
 def delete_product(product_id):

@@ -28,11 +28,14 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
 
         # Lấy giỏ hàng
         cursor.execute("""
-            SELECT ci.id AS item_id, ci.quantity, p.id AS product_id, p.price,
-                   p.discount_price, p.stock_quantity, p.product_name
+            SELECT ci.id AS item_id, ci.quantity, ci.variant_id, p.id AS product_id, p.price,
+                   p.discount_price, p.stock_quantity, p.product_name,
+                   v.variant_name, v.price AS variant_price, v.discount_price AS variant_discount_price,
+                   v.stock_quantity AS variant_stock_quantity
             FROM carts c
             JOIN cart_items ci ON c.id = ci.cart_id
             JOIN products p ON ci.product_id = p.id
+            LEFT JOIN product_variants v ON ci.variant_id = v.id
             WHERE c.user_id = %s
         """, (user_id,))
         cart_items = cursor.fetchall()
@@ -41,12 +44,19 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
             return None, "Giỏ hàng trống", 400
 
         for item in cart_items:
+            if item.get('variant_id'):
+                item['price'] = item['variant_price']
+                item['discount_price'] = item['variant_discount_price']
+                item['stock_quantity'] = item['variant_stock_quantity']
+                item['display_name'] = f"{item['product_name']} ({item['variant_name']})"
+            else:
+                item['display_name'] = item['product_name']
             item['unit_price'] = effective_price(item['price'], item.get('discount_price'))
 
         # Kiểm tra tồn kho
         for item in cart_items:
             if item['quantity'] > item['stock_quantity']:
-                return None, f"Sản phẩm '{item['product_name']}' không đủ hàng (còn {item['stock_quantity']})", 400
+                return None, f"Sản phẩm '{item['display_name']}' không đủ hàng (còn {item['stock_quantity']})", 400
 
         # Tính tổng
         total = sum(item['unit_price'] * item['quantity'] for item in cart_items)
@@ -85,13 +95,33 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
         # Tạo order_items + trừ stock
         for item in cart_items:
             cursor.execute(
-                "INSERT INTO order_items (order_id, product_id, product_name, quantity, price) VALUES (%s,%s,%s,%s,%s)",
-                (order_id, item['product_id'], item['product_name'], item['quantity'], item['unit_price'])
+                """
+                INSERT INTO order_items (order_id, product_id, variant_id, product_name, variant_name, quantity, price)
+                VALUES (%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (order_id, item['product_id'], item.get('variant_id'), item['product_name'], item.get('variant_name'), item['quantity'], item['unit_price'])
             )
-            cursor.execute(
-                "UPDATE products SET stock_quantity = stock_quantity - %s WHERE id = %s",
-                (item['quantity'], item['product_id'])
-            )
+            if item.get('variant_id'):
+                cursor.execute(
+                    "UPDATE product_variants SET stock_quantity = stock_quantity - %s WHERE id = %s",
+                    (item['quantity'], item['variant_id'])
+                )
+                
+                # Cập nhật tồn kho sản phẩm chính = tổng tồn kho biến thể
+                cursor.execute("SELECT SUM(stock_quantity) FROM product_variants WHERE product_id = %s", (item['product_id'],))
+                total_stock_row = cursor.fetchone()
+                total_stock = 0
+                if total_stock_row:
+                    if isinstance(total_stock_row, dict):
+                        total_stock = list(total_stock_row.values())[0] or 0
+                    else:
+                        total_stock = total_stock_row[0] or 0
+                cursor.execute("UPDATE products SET stock_quantity = %s WHERE id = %s", (total_stock, item['product_id']))
+            else:
+                cursor.execute(
+                    "UPDATE products SET stock_quantity = stock_quantity - %s WHERE id = %s",
+                    (item['quantity'], item['product_id'])
+                )
 
         # Xóa giỏ hàng
         cursor.execute("SELECT id FROM carts WHERE user_id = %s", (user_id,))
@@ -143,7 +173,8 @@ def get_user_orders(user_id):
         result = []
         for order in orders:
             cursor.execute("""
-                SELECT oi.product_id, oi.product_name, oi.quantity, oi.price, p.thumbnail_url,
+                SELECT oi.product_id, oi.variant_id, oi.product_name, oi.variant_name, oi.quantity, oi.price,
+                       COALESCE(v.thumbnail_url, p.thumbnail_url) AS thumbnail_url,
                        EXISTS(
                            SELECT 1 FROM reviews r
                            WHERE r.user_id = %s AND r.product_id = oi.product_id
@@ -151,6 +182,7 @@ def get_user_orders(user_id):
                        ) AS reviewed
                 FROM order_items oi
                 LEFT JOIN products p ON oi.product_id = p.id
+                LEFT JOIN product_variants v ON oi.variant_id = v.id
                 WHERE oi.order_id = %s
             """, (user_id, order['id']))
             items = cursor.fetchall()
@@ -187,9 +219,10 @@ def get_order_detail(user_id, order_id):
             return None, "Không tìm thấy đơn hàng"
 
         cursor.execute("""
-            SELECT oi.*, p.thumbnail_url
+            SELECT oi.*, COALESCE(v.thumbnail_url, p.thumbnail_url) AS thumbnail_url
             FROM order_items oi
             LEFT JOIN products p ON oi.product_id = p.id
+            LEFT JOIN product_variants v ON oi.variant_id = v.id
             WHERE oi.order_id = %s
         """, (order_id,))
         items = cursor.fetchall()

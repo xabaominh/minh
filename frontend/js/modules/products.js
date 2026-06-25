@@ -126,10 +126,14 @@ export async function loadProducts(categoryId = null, search = null) {
                 <div class="thong-tin">
                     <h3 onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">${p.product_name}</h3>
                     ${formatPriceHtml(p.price, p.discount_price)}
-                    <button class="add-to-cart-btn"
-                            onclick="window._cart.addToCart(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')">
-                        <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
-                    </button>
+                    ${p.variant_count > 0 
+                        ? `<button class="add-to-cart-btn" onclick="window._products.openProductModal(${p.id})">
+                               <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
+                           </button>`
+                        : `<button class="add-to-cart-btn" onclick="window._cart.addToCart(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')">
+                               <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
+                           </button>`
+                    }
                 </div>
             </div>`;
         }).join('');
@@ -231,11 +235,16 @@ function renderCollectionProducts(products) {
                 <p class="mo-ta-ngan">${p.description || 'Sản phẩm nội thất cao cấp'}</p>
                 ${formatPriceHtml(p.price, p.discount_price, 'gia-sp')}
                 ${stockHTML}
-                <button class="add-to-cart-btn"
-                        onclick="window._cart.addToCart(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')"
-                        ${p.stock_quantity <= 0 ? 'disabled' : ''}>
-                    <i class="fas fa-shopping-bag"></i> Thêm vào giỏ
-                </button>
+                ${p.variant_count > 0 
+                    ? `<button class="add-to-cart-btn" onclick="window._products.openProductModal(${p.id})">
+                           <i class="fas fa-shopping-bag"></i> Thêm vào giỏ
+                       </button>`
+                    : `<button class="add-to-cart-btn"
+                               onclick="window._cart.addToCart(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')"
+                               ${p.stock_quantity <= 0 ? 'disabled' : ''}>
+                           <i class="fas fa-shopping-bag"></i> Thêm vào giỏ
+                       </button>`
+                }
             </div>
         </div>`;
     }).join('');
@@ -338,6 +347,9 @@ export function setupPriceFilter() {
         });
     });
 }
+ 
+let currentProduct = null;
+let selectedVariantId = null;
 
 // ===== PRODUCT MODAL =====
 export function setupProductModal() {
@@ -371,12 +383,27 @@ export async function openProductModal(productId, options = {}) {
         ]);
         if (!productRes.ok) throw new Error('API Error');
         const p = await productRes.json();
+        currentProduct = p;
+        selectedVariantId = p.variants && p.variants.length > 0 ? p.variants[0].id : null;
+
         const reviewData = reviewRes.ok ? await reviewRes.json() : { reviews: [], summary: { average: 0, count: 0 }, can_review: false };
         const thumb = optimizeProductImage(p.thumbnail_url);
-        const unitPrice = getEffectivePrice(p);
+        
+        let displayPrice = p.price;
+        let displayDiscount = p.discount_price;
+        let displayStock = p.stock_quantity;
+        let displayThumb = thumb;
+        if (selectedVariantId && p.variants && p.variants.length > 0) {
+            const v = p.variants[0];
+            displayPrice = v.price;
+            displayDiscount = v.discount_price;
+            displayStock = v.stock_quantity;
+            if (v.thumbnail_url) displayThumb = optimizeProductImage(v.thumbnail_url);
+        }
 
+        const unitPrice = getEffectivePrice({ price: displayPrice, discount_price: displayDiscount });
         const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const priceBlock = formatPriceHtml(p.price, p.discount_price, 'product-detail-price');
+        const priceBlock = formatPriceHtml(displayPrice, displayDiscount, 'product-detail-price');
         const reviewsHtml = (reviewData.reviews || []).map(r => `
             <div class="review-item">
                 <div class="product-rating-summary">${renderStars(r.rating)} <strong>${escapeHtml(r.full_name || r.username)}</strong></div>
@@ -395,7 +422,7 @@ export async function openProductModal(productId, options = {}) {
             </form>
         ` : `<p class="review-hint">${escapeHtml(reviewData.review_message || 'Chỉ khách đã mua và nhận hàng mới được đánh giá.')}</p>`;
 
-        let imagesHtml = `<img src="${thumb}" class="gallery-thumb active" onclick="window._products.changeMainImage(this, '${thumb}')">`;
+        let imagesHtml = `<img src="${displayThumb}" class="gallery-thumb active" onclick="window._products.changeMainImage(this, '${displayThumb}')">`;
         if (p.images && p.images.length > 0) {
             p.images.forEach(img => {
                 const optimized = optimizeProductImage(img.url);
@@ -403,11 +430,29 @@ export async function openProductModal(productId, options = {}) {
             });
         }
 
+        let variantSelectorHtml = '';
+        if (p.variants && p.variants.length > 0) {
+            variantSelectorHtml = `
+                <div class="product-variant-section" style="margin-bottom: 20px;">
+                    <label class="product-specs-title" style="font-weight: 600; display: block; margin-bottom: 8px;">Chọn Phân Loại:</label>
+                    <div class="variant-chips-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        ${p.variants.map((v, index) => `
+                            <button class="variant-chip ${index === 0 ? 'active' : ''}" 
+                                    data-variant-id="${v.id}" 
+                                    onclick="window._products.selectVariant(${v.id})">
+                                ${escapeHtml(v.variant_name)}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         body.innerHTML = `
             <div class="product-detail-layout">
                 <div class="product-detail-images">
                     <div class="main-image-wrapper">
-                        <img src="${thumb}" id="mainProductImage" alt="${p.product_name}" decoding="async">
+                        <img src="${displayThumb}" id="mainProductImage" alt="${p.product_name}" decoding="async">
                     </div>
                     <div class="gallery-images">${imagesHtml}</div>
                 </div>
@@ -417,20 +462,21 @@ export async function openProductModal(productId, options = {}) {
                     ${priceBlock}
                     <div class="product-rating-summary">${renderStars(reviewData.summary?.average || 0)} <span>${reviewData.summary?.count || 0} đánh giá</span></div>
                     <p class="product-detail-desc">${p.description || 'Không có mô tả cho sản phẩm này.'}</p>
+                    ${variantSelectorHtml}
                     <div class="product-specs">
-                        <p><strong>Tình trạng:</strong> ${p.stock_quantity > 0 ? '<span style="color:#27ae60">Còn hàng (' + p.stock_quantity + ')</span>' : '<span style="color:#e74c3c">Hết hàng</span>'}</p>
+                        <p id="modalStockStatus"><strong>Tình trạng:</strong> <span id="modalStockValue">${displayStock > 0 ? '<span style="color:#27ae60">Còn hàng (' + displayStock + ')</span>' : '<span style="color:#e74c3c">Hết hàng</span>'}</span></p>
                         ${p.attributes?.dimensions ? `<p><strong>Kích thước:</strong> ${p.attributes.dimensions}</p>` : ''}
                         ${p.attributes?.material ? `<p><strong>Chất liệu:</strong> ${p.attributes.material}</p>` : ''}
                     </div>
                     <div class="product-detail-actions">
                         <div class="product-qty-selector">
                             <button class="product-qty-btn" onclick="window._products.changeModalQty(-1)">-</button>
-                            <input type="number" class="product-qty-input" id="modalQtyInput" value="1" min="1" max="${p.stock_quantity > 0 ? p.stock_quantity : 1}">
+                            <input type="number" class="product-qty-input" id="modalQtyInput" value="1" min="1" max="${displayStock > 0 ? displayStock : 1}">
                             <button class="product-qty-btn" onclick="window._products.changeModalQty(1)">+</button>
                         </div>
                         <button class="product-add-btn" 
-                                onclick="window._products.addToCartFromModal(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')"
-                                ${p.stock_quantity <= 0 ? 'disabled' : ''}>
+                                onclick="window._products.addToCartFromModal(${p.id}, '${safeName}', ${unitPrice}, '${displayThumb}')"
+                                ${displayStock <= 0 ? 'disabled' : ''}>
                             <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
                         </button>
                     </div>
@@ -527,17 +573,35 @@ function changeModalQty(delta) {
 async function addToCartFromModal(id, name, price, imageUrl) {
     const qtyInput = document.getElementById('modalQtyInput');
     const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+    
+    let variantName = null;
+    let variantPrice = price;
+    let variantThumb = imageUrl;
+
+    if (currentProduct && currentProduct.variants && currentProduct.variants.length > 0) {
+        const v = currentProduct.variants.find(x => x.id === selectedVariantId);
+        if (v) {
+            variantName = v.variant_name;
+            variantPrice = getEffectivePrice(v);
+            if (v.thumbnail_url) variantThumb = optimizeProductImage(v.thumbnail_url);
+        }
+    }
+
+    const displayName = variantName ? `${name} (${variantName})` : name;
 
     if (state.currentUser) {
         try {
+            const payload = { product_id: id, quantity: qty };
+            if (selectedVariantId) payload.variant_id = selectedVariantId;
+
             const res = await fetch(`${API_BASE}/cart/add`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ product_id: id, quantity: qty })
+                body: JSON.stringify(payload)
             });
             if (res.ok) {
-                showNotification(`Đã thêm ${qty} "${name}" vào giỏ hàng!`, 'success');
+                showNotification(`Đã thêm ${qty} "${displayName}" vào giỏ hàng!`, 'success');
                 await syncCartFromServer();
                 closeProductModal();
             } else {
@@ -548,18 +612,76 @@ async function addToCartFromModal(id, name, price, imageUrl) {
             showNotification('Không thể kết nối server', 'error');
         }
     } else {
-        const existing = state.cart.find(item => item.id === id);
+        const existing = state.cart.find(item => item.id === id && item.variant_id === selectedVariantId);
         if (existing) {
             existing.quantity += qty;
         } else {
-            state.cart.push({ id, name, price, image: imageUrl, quantity: qty });
+            state.cart.push({ 
+                id, 
+                name, 
+                price: variantPrice, 
+                image: variantThumb, 
+                quantity: qty,
+                variant_id: selectedVariantId,
+                variant_name: variantName
+            });
         }
         localStorage.setItem('luxdecor_cart', JSON.stringify(state.cart));
         const { updateCartUI } = await import('./cart.js');
         updateCartUI();
-        showNotification(`Đã thêm ${qty} "${name}" vào giỏ hàng!`, 'success');
+        showNotification(`Đã thêm ${qty} "${displayName}" vào giỏ hàng!`, 'success');
         closeProductModal();
     }
+}
+
+export function selectVariant(variantId) {
+    if (!currentProduct || !currentProduct.variants) return;
+    const v = currentProduct.variants.find(x => x.id === variantId);
+    if (!v) return;
+
+    selectedVariantId = variantId;
+
+    // Update image
+    const mainImg = document.getElementById('mainProductImage');
+    if (mainImg) {
+        const thumbUrl = v.thumbnail_url || currentProduct.thumbnail_url;
+        mainImg.src = optimizeProductImage(thumbUrl);
+    }
+
+    // Update price block
+    const priceBlock = document.querySelector('.product-detail-price');
+    if (priceBlock) {
+        const newPriceHtml = formatPriceHtml(v.price, v.discount_price, 'product-detail-price');
+        const temp = document.createElement('div');
+        temp.innerHTML = newPriceHtml;
+        priceBlock.replaceWith(temp.firstElementChild);
+    }
+
+    // Update stock info
+    const stockVal = document.getElementById('modalStockValue');
+    if (stockVal) {
+        stockVal.innerHTML = v.stock_quantity > 0 
+            ? `<span style="color:#27ae60">Còn hàng (${v.stock_quantity})</span>` 
+            : `<span style="color:#e74c3c">Hết hàng</span>`;
+    }
+
+    // Update max quantity input
+    const qtyInput = document.getElementById('modalQtyInput');
+    if (qtyInput) {
+        qtyInput.max = v.stock_quantity > 0 ? v.stock_quantity : 1;
+        qtyInput.value = 1;
+    }
+
+    // Update button status
+    const addBtn = document.querySelector('.product-add-btn');
+    if (addBtn) {
+        addBtn.disabled = v.stock_quantity <= 0;
+    }
+
+    // Update active chip styling
+    document.querySelectorAll('.variant-chip').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.variantId) === variantId);
+    });
 }
 
 // ===== SCROLL REVEAL =====
@@ -582,6 +704,7 @@ window._products = {
     changeMainImage,
     changeModalQty,
     addToCartFromModal,
+    selectVariant,
     loadProducts,
     loadAllProducts,
     resetFilters

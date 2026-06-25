@@ -251,6 +251,17 @@
                 </select>
             </div>
             <div class="admin-form-group">
+                <label class="admin-form-label" style="display: flex; justify-content: space-between; align-items: center;">
+                    Danh sách phân loại (Biến thể)
+                    <button type="button" class="admin-refresh-btn" style="padding: 4px 10px; font-size: 0.8rem;" onclick="if(window._adminUtils) window._adminUtils.addVariantRow()">
+                        <i class="fas fa-plus"></i> Thêm phân loại
+                    </button>
+                </label>
+                <div id="adminProductVariantsContainer" class="admin-variants-container">
+                    <!-- Variant rows loaded dynamically -->
+                </div>
+            </div>
+            <div class="admin-form-group">
                 <label class="admin-form-label">Mô tả</label>
                 <textarea id="ap_description" rows="3" class="admin-form-control"></textarea>
             </div>

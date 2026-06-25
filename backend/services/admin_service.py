@@ -110,7 +110,7 @@ def get_all_orders(status_filter=None):
         for order in orders:
             _serialize_dates(order)
             cursor.execute("""
-                SELECT oi.product_name, oi.quantity, oi.price, pr.thumbnail_url
+                SELECT oi.product_name, oi.variant_name, oi.quantity, oi.price, pr.thumbnail_url
                 FROM order_items oi
                 LEFT JOIN products pr ON oi.product_id = pr.id
                 WHERE oi.order_id = %s
@@ -172,15 +172,32 @@ def update_order_status(order_id, new_status):
         # Nếu hủy đơn -> hoàn trả stock
         if new_status == 'CANCELLED' and current_status != 'CANCELLED':
             cursor.execute(
-                "SELECT product_id, quantity FROM order_items WHERE order_id = %s",
+                "SELECT product_id, variant_id, quantity FROM order_items WHERE order_id = %s",
                 (order_id,)
             )
             items = cursor.fetchall()
             for item in items:
-                cursor.execute(
-                    "UPDATE products SET stock_quantity = stock_quantity + %s WHERE id = %s",
-                    (item['quantity'], item['product_id'])
-                )
+                if item.get('variant_id'):
+                    cursor.execute(
+                        "UPDATE product_variants SET stock_quantity = stock_quantity + %s WHERE id = %s",
+                        (item['quantity'], item['variant_id'])
+                    )
+                    
+                    # Cập nhật tồn kho sản phẩm chính = tổng tồn kho biến thể
+                    cursor.execute("SELECT SUM(stock_quantity) FROM product_variants WHERE product_id = %s", (item['product_id'],))
+                    total_stock_row = cursor.fetchone()
+                    total_stock = 0
+                    if total_stock_row:
+                        if isinstance(total_stock_row, dict):
+                            total_stock = list(total_stock_row.values())[0] or 0
+                        else:
+                            total_stock = total_stock_row[0] or 0
+                    cursor.execute("UPDATE products SET stock_quantity = %s WHERE id = %s", (total_stock, item['product_id']))
+                else:
+                    cursor.execute(
+                        "UPDATE products SET stock_quantity = stock_quantity + %s WHERE id = %s",
+                        (item['quantity'], item['product_id'])
+                    )
             # Cập nhật payment_status = FAILED
             cursor.execute(
                 "UPDATE payments SET payment_status = 'FAILED' WHERE order_id = %s",
