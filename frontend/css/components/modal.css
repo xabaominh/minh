@@ -370,6 +370,86 @@
     border-left: 3px solid var(--accent);
 }
 
+/* ===== PRODUCT VARIANT PICKER ===== */
+.variant-picker {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.variant-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.variant-group label i {
+    color: var(--accent);
+}
+
+.variant-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.variant-option {
+    padding: 8px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-white);
+    color: var(--text-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.variant-option:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.variant-option.active {
+    border-color: var(--accent);
+    background: rgba(201, 168, 76, 0.12);
+    color: var(--accent-hover);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.variant-option:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.selected-variant-summary {
+    font-size: 0.88rem;
+    color: var(--accent-hover);
+    font-weight: 600;
+    margin-bottom: 12px;
+    min-height: 1.2em;
+}
+
+#modalVariantPrice.gia-km .gia-goc,
+.product-detail-price .gia-goc {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    font-size: 0.75em;
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+#modalVariantPrice.gia-km .gia-ban,
+.product-detail-price .gia-ban {
+    color: #e74c3c;
+}
+
 .product-detail-desc {
     color: var(--text-body);
     line-height: 1.6;

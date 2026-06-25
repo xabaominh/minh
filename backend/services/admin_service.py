@@ -172,11 +172,16 @@ def update_order_status(order_id, new_status):
         # Nếu hủy đơn -> hoàn trả stock
         if new_status == 'CANCELLED' and current_status != 'CANCELLED':
             cursor.execute(
-                "SELECT product_id, quantity FROM order_items WHERE order_id = %s",
+                "SELECT product_id, variant_id, quantity FROM order_items WHERE order_id = %s",
                 (order_id,)
             )
             items = cursor.fetchall()
             for item in items:
+                if item.get('variant_id'):
+                    cursor.execute(
+                        "UPDATE product_variants SET stock_quantity = stock_quantity + %s WHERE id = %s",
+                        (item['quantity'], item['variant_id'])
+                    )
                 cursor.execute(
                     "UPDATE products SET stock_quantity = stock_quantity + %s WHERE id = %s",
                     (item['quantity'], item['product_id'])

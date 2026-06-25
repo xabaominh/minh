@@ -110,6 +110,11 @@ def get_product_detail(product_id):
         images = cursor.fetchall()
         product['images'] = images
 
+        from services.variant_service import get_product_variants, build_variant_options
+        variants, _ = get_product_variants(product_id)
+        product['variants'] = variants or []
+        product['variant_options'] = build_variant_options(product['variants'])
+
         return decimal_to_float(product), None
 
     except mysql.connector.Error as err:

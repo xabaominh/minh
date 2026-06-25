@@ -90,6 +90,8 @@ INSERT INTO coupons (code, discount_amount, discount_type, min_order_amount, val
 ('LUXDECOR10', 10, 'PERCENT', 1000000, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 100, 0, TRUE),
 ('GIAM100K', 100000, 'FIXED', 3000000, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 50, 0, TRUE);
 
+-- Biến thể SP: chạy python migrations/seed_variants.py (hoặc apply_variants.py trên DB đã có)
+
 -- =====================================
 -- 6. ĐÁNH GIÁ MẪU
 -- =====================================

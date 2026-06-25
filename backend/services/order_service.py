@@ -3,6 +3,7 @@ from database import get_db
 from utils.helpers import decimal_to_float, effective_price
 from utils.validators import validate_phone
 from services.coupon_service import validate_coupon
+from services.variant_service import variant_unit_price
 from models.order import serialize_order
 
 
@@ -28,11 +29,15 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
 
         # Lấy giỏ hàng
         cursor.execute("""
-            SELECT ci.id AS item_id, ci.quantity, p.id AS product_id, p.price,
-                   p.discount_price, p.stock_quantity, p.product_name
+            SELECT ci.id AS item_id, ci.quantity, ci.variant_id,
+                   p.id AS product_id, p.price, p.discount_price, p.product_name,
+                   pv.stock_quantity, pv.size AS variant_size, pv.color AS variant_color,
+                   pv.material AS variant_material, pv.price AS variant_price,
+                   pv.discount_price AS variant_discount
             FROM carts c
             JOIN cart_items ci ON c.id = ci.cart_id
             JOIN products p ON ci.product_id = p.id
+            JOIN product_variants pv ON ci.variant_id = pv.id
             WHERE c.user_id = %s
         """, (user_id,))
         cart_items = cursor.fetchall()
@@ -41,12 +46,16 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
             return None, "Giỏ hàng trống", 400
 
         for item in cart_items:
-            item['unit_price'] = effective_price(item['price'], item.get('discount_price'))
+            item['unit_price'] = variant_unit_price(
+                item['price'], item.get('discount_price'),
+                item.get('variant_price'), item.get('variant_discount')
+            )
 
         # Kiểm tra tồn kho
         for item in cart_items:
             if item['quantity'] > item['stock_quantity']:
-                return None, f"Sản phẩm '{item['product_name']}' không đủ hàng (còn {item['stock_quantity']})", 400
+                label = f"{item['product_name']} ({item['variant_size']} / {item['variant_color']} / {item['variant_material']})"
+                return None, f"Sản phẩm '{label}' không đủ hàng (còn {item['stock_quantity']})", 400
 
         # Tính tổng
         total = sum(item['unit_price'] * item['quantity'] for item in cart_items)
@@ -85,11 +94,25 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
         # Tạo order_items + trừ stock
         for item in cart_items:
             cursor.execute(
-                "INSERT INTO order_items (order_id, product_id, product_name, quantity, price) VALUES (%s,%s,%s,%s,%s)",
-                (order_id, item['product_id'], item['product_name'], item['quantity'], item['unit_price'])
+                """
+                INSERT INTO order_items (
+                    order_id, product_id, variant_id, product_name,
+                    variant_size, variant_color, variant_material,
+                    quantity, price
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (
+                    order_id, item['product_id'], item['variant_id'], item['product_name'],
+                    item['variant_size'], item['variant_color'], item['variant_material'],
+                    item['quantity'], item['unit_price']
+                )
             )
             cursor.execute(
-                "UPDATE products SET stock_quantity = stock_quantity - %s WHERE id = %s",
+                "UPDATE product_variants SET stock_quantity = stock_quantity - %s WHERE id = %s",
+                (item['quantity'], item['variant_id'])
+            )
+            cursor.execute(
+                "UPDATE products SET stock_quantity = GREATEST(stock_quantity - %s, 0) WHERE id = %s",
                 (item['quantity'], item['product_id'])
             )
 
@@ -144,6 +167,7 @@ def get_user_orders(user_id):
         for order in orders:
             cursor.execute("""
                 SELECT oi.product_id, oi.product_name, oi.quantity, oi.price, p.thumbnail_url,
+                       oi.variant_id, oi.variant_size, oi.variant_color, oi.variant_material,
                        EXISTS(
                            SELECT 1 FROM reviews r
                            WHERE r.user_id = %s AND r.product_id = oi.product_id

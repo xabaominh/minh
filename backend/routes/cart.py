@@ -19,9 +19,10 @@ def view_cart():
 def add_to_cart():
     data = request.get_json()
     product_id = data.get('product_id')
+    variant_id = data.get('variant_id')
     quantity = data.get('quantity', 1)
 
-    error, status = add_item(session['user_id'], product_id, quantity)
+    error, status = add_item(session['user_id'], product_id, quantity, variant_id)
     if error:
         return jsonify({"error": error}), status
     return jsonify({"message": "Đã thêm vào giỏ hàng"}), 200

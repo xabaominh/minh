@@ -1,6 +1,7 @@
 import mysql.connector
 from database import get_db
 from utils.helpers import decimal_to_float, effective_price
+from services.variant_service import get_variant_by_id, variant_unit_price
 
 
 def _get_or_create_cart(cursor, conn, user_id):
@@ -14,6 +15,13 @@ def _get_or_create_cart(cursor, conn, user_id):
     return cart['id']
 
 
+def _resolve_variant_for_cart(product_id, variant_id):
+    variant, error = get_variant_by_id(variant_id, product_id)
+    if error:
+        return None, error
+    return variant, None
+
+
 def get_cart(user_id):
     """Lấy giỏ hàng của user."""
     conn = None
@@ -23,18 +31,26 @@ def get_cart(user_id):
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute("""
-            SELECT ci.id AS item_id, ci.quantity,
+            SELECT ci.id AS item_id, ci.quantity, ci.variant_id,
                    p.id AS product_id, p.product_name, p.price, p.discount_price,
-                   p.thumbnail_url, p.stock_quantity
+                   p.thumbnail_url,
+                   pv.size AS variant_size, pv.color AS variant_color,
+                   pv.material AS variant_material, pv.stock_quantity,
+                   pv.price AS variant_price, pv.discount_price AS variant_discount
             FROM carts c
             JOIN cart_items ci ON c.id = ci.cart_id
             JOIN products p ON ci.product_id = p.id
+            JOIN product_variants pv ON ci.variant_id = pv.id
             WHERE c.user_id = %s
         """, (user_id,))
         items = cursor.fetchall()
 
         for item in items:
-            item['unit_price'] = effective_price(item['price'], item.get('discount_price'))
+            item['unit_price'] = variant_unit_price(
+                item['price'], item.get('discount_price'),
+                item.get('variant_price'), item.get('variant_discount')
+            )
+            item['price'] = item['unit_price']
 
         total = sum(item['unit_price'] * item['quantity'] for item in items)
 
@@ -50,10 +66,16 @@ def get_cart(user_id):
             conn.close()
 
 
-def add_item(user_id, product_id, quantity=1):
+def add_item(user_id, product_id, quantity=1, variant_id=None):
     """Thêm sản phẩm vào giỏ hàng."""
     if not product_id:
         return "Thiếu product_id", 400
+    if not variant_id:
+        return "Vui lòng chọn kích cỡ, màu sắc và chất liệu", 400
+
+    variant, error = _resolve_variant_for_cart(product_id, variant_id)
+    if error:
+        return error, 400
 
     conn = None
     cursor = None
@@ -63,20 +85,28 @@ def add_item(user_id, product_id, quantity=1):
 
         cart_id = _get_or_create_cart(cursor, conn, user_id)
 
-        # Kiểm tra đã có trong giỏ chưa
         cursor.execute(
-            "SELECT id, quantity FROM cart_items WHERE cart_id = %s AND product_id = %s",
-            (cart_id, product_id)
+            """
+            SELECT id, quantity FROM cart_items
+            WHERE cart_id = %s AND product_id = %s AND variant_id = %s
+            """,
+            (cart_id, product_id, variant_id)
         )
         existing = cursor.fetchone()
 
+        new_qty = quantity
         if existing:
             new_qty = existing['quantity'] + quantity
+
+        if new_qty > variant['stock_quantity']:
+            return f"Chỉ còn {variant['stock_quantity']} sản phẩm cho biến thể đã chọn", 400
+
+        if existing:
             cursor.execute("UPDATE cart_items SET quantity = %s WHERE id = %s", (new_qty, existing['id']))
         else:
             cursor.execute(
-                "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (%s,%s,%s)",
-                (cart_id, product_id, quantity)
+                "INSERT INTO cart_items (cart_id, product_id, variant_id, quantity) VALUES (%s,%s,%s,%s)",
+                (cart_id, product_id, variant_id, quantity)
             )
 
         conn.commit()
@@ -103,19 +133,23 @@ def update_item(user_id, item_id, quantity):
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
 
-        # Xác minh item thuộc user
         cursor.execute("""
-            SELECT ci.id FROM cart_items ci
+            SELECT ci.id, ci.quantity, ci.variant_id, pv.stock_quantity
+            FROM cart_items ci
             JOIN carts c ON ci.cart_id = c.id
+            JOIN product_variants pv ON ci.variant_id = pv.id
             WHERE ci.id = %s AND c.user_id = %s
         """, (item_id, user_id))
 
-        if not cursor.fetchone():
+        row = cursor.fetchone()
+        if not row:
             return "Không tìm thấy sản phẩm trong giỏ", 404
 
         if quantity <= 0:
             cursor.execute("DELETE FROM cart_items WHERE id = %s", (item_id,))
         else:
+            if quantity > row['stock_quantity']:
+                return f"Chỉ còn {row['stock_quantity']} sản phẩm cho biến thể đã chọn", 400
             cursor.execute("UPDATE cart_items SET quantity = %s WHERE id = %s", (quantity, item_id))
 
         conn.commit()
@@ -177,23 +211,33 @@ def merge_cart(user_id, items):
 
         for item in items:
             pid = item.get('product_id')
+            vid = item.get('variant_id')
             qty = item.get('quantity', 1)
-            if not pid:
+            if not pid or not vid:
+                continue
+
+            variant, error = _resolve_variant_for_cart(pid, vid)
+            if error:
                 continue
 
             cursor.execute(
-                "SELECT id, quantity FROM cart_items WHERE cart_id = %s AND product_id = %s",
-                (cart_id, pid)
+                """
+                SELECT id, quantity FROM cart_items
+                WHERE cart_id = %s AND product_id = %s AND variant_id = %s
+                """,
+                (cart_id, pid, vid)
             )
             existing = cursor.fetchone()
             if existing:
-                new_qty = existing['quantity'] + qty
+                new_qty = min(existing['quantity'] + qty, variant['stock_quantity'])
                 cursor.execute("UPDATE cart_items SET quantity = %s WHERE id = %s", (new_qty, existing['id']))
             else:
-                cursor.execute(
-                    "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (%s,%s,%s)",
-                    (cart_id, pid, qty)
-                )
+                qty = min(qty, variant['stock_quantity'])
+                if qty > 0:
+                    cursor.execute(
+                        "INSERT INTO cart_items (cart_id, product_id, variant_id, quantity) VALUES (%s,%s,%s,%s)",
+                        (cart_id, pid, vid, qty)
+                    )
 
         conn.commit()
         return None, 200

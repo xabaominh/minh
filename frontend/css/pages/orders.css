@@ -162,6 +162,13 @@
     text-overflow: ellipsis;
 }
 
+.order-item-variant {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
 .order-item-qty {
     font-size: 0.78rem;
     color: var(--text-muted);

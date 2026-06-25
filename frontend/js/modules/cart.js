@@ -127,7 +127,11 @@ function copyText(text) {
 export async function mergeLocalCart() {
     if (!state.currentUser || state.cart.length === 0) return;
     try {
-        const items = state.cart.map(item => ({ product_id: item.id, quantity: item.quantity }));
+        const items = state.cart.map(item => ({
+            product_id: item.id,
+            variant_id: item.variantId,
+            quantity: item.quantity
+        }));
         await fetch(`${API_BASE}/cart/merge`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -149,11 +153,15 @@ export async function syncCartFromServer() {
             const data = await res.json();
             state.cart = (data.items || []).map(item => ({
                 id: item.product_id,
+                variantId: item.variant_id,
                 item_id: item.item_id,
                 name: item.product_name,
                 price: item.unit_price ?? item.price,
                 image: item.thumbnail_url,
-                quantity: item.quantity
+                quantity: item.quantity,
+                variantSize: item.variant_size,
+                variantColor: item.variant_color,
+                variantMaterial: item.variant_material
             }));
             updateCartUI();
         } else if (res.status === 401) {
@@ -206,7 +214,8 @@ export async function removeFromCart(idOrItemId) {
             await syncCartFromServer();
         } catch (e) {}
     } else {
-        state.cart = state.cart.filter(item => item.id !== idOrItemId);
+        const [productId, variantId] = String(idOrItemId).split('-').map(Number);
+        state.cart = state.cart.filter(item => !(item.id === productId && item.variantId === variantId));
         localStorage.setItem('luxdecor_cart', JSON.stringify(state.cart));
         updateCartUI();
     }
@@ -230,7 +239,8 @@ export async function changeQuantity(idOrItemId, delta) {
             renderCartItems();
         } catch (e) {}
     } else {
-        const item = state.cart.find(i => i.id === idOrItemId);
+        const [productId, variantId] = String(idOrItemId).split('-').map(Number);
+        const item = state.cart.find(i => i.id === productId && i.variantId === variantId);
         if (!item) return;
         item.quantity += delta;
         if (item.quantity <= 0) { removeFromCart(idOrItemId); return; }
@@ -277,14 +287,18 @@ export function renderCartItems() {
     const isLoggedIn = !!state.currentUser;
 
     container.innerHTML = state.cart.map(item => {
-        const removeId = isLoggedIn ? item.item_id : item.id;
-        const changeId = isLoggedIn ? item.item_id : item.id;
+        const removeId = isLoggedIn ? item.item_id : `${item.id}-${item.variantId}`;
+        const changeId = isLoggedIn ? item.item_id : `${item.id}-${item.variantId}`;
+        const variantLine = item.variantSize
+            ? `<p class="cart-item-variant"><i class="fas fa-sliders-h"></i> ${escapeHtml(item.variantSize)} · ${escapeHtml(item.variantColor)} · ${escapeHtml(item.variantMaterial)}</p>`
+            : '';
         return `
         <div class="cart-item">
-            <img src="${optimizeProductImage(item.image)}" alt="${item.name}" loading="lazy" decoding="async"
+            <img src="${optimizeProductImage(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async"
                  onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&q=60'">
             <div class="cart-item-info">
-                <h4>${item.name}</h4>
+                <h4>${escapeHtml(item.name)}</h4>
+                ${variantLine}
                 <p class="cart-item-price">${formatPrice(item.price)}</p>
                 <div class="cart-item-qty">
                     <button onclick="window._cart.changeQuantity(${changeId}, -1)">−</button>

@@ -78,6 +78,21 @@ CREATE TABLE product_images (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+CREATE TABLE product_variants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    sku VARCHAR(80) NOT NULL UNIQUE,
+    size VARCHAR(80) NOT NULL,
+    color VARCHAR(80) NOT NULL,
+    material VARCHAR(120) NOT NULL,
+    price DECIMAL(12,2) DEFAULT NULL,
+    discount_price DECIMAL(12,2) DEFAULT NULL,
+    stock_quantity INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_variant_combo (product_id, size, color, material)
+);
+
 -- =====================================
 -- 4. CART
 -- =====================================
@@ -94,12 +109,14 @@ CREATE TABLE cart_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cart_id INT NOT NULL,
     product_id INT NOT NULL,
+    variant_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_cart_product (cart_id, product_id)
+    FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_cart_line (cart_id, product_id, variant_id)
 );
 
 -- =====================================
@@ -145,11 +162,16 @@ CREATE TABLE order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     product_id INT,
+    variant_id INT DEFAULT NULL,
     product_name VARCHAR(200) NOT NULL,
+    variant_size VARCHAR(80) DEFAULT NULL,
+    variant_color VARCHAR(80) DEFAULT NULL,
+    variant_material VARCHAR(120) DEFAULT NULL,
     quantity INT NOT NULL,
     price DECIMAL(12,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
+    FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE SET NULL
 );
 
 -- =====================================

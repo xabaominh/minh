@@ -6,6 +6,16 @@ import { API_BASE, state } from '../state.js';
 import { formatPrice, showNotification, addToCart, syncCartFromServer, closeCheckoutModal } from './cart.js';
 import { optimizeProductImage } from '../imageUtils.js';
 import { getEffectivePrice, formatPriceHtml, renderStars, hasDiscount, discountPercent } from '../priceUtils.js';
+import {
+    getDefaultSelection, renderVariantPickers, bindVariantPickers,
+    updateVariantSummary, findVariant, getVariantUnitPrice, formatVariantLabel
+} from '../variantUtils.js';
+
+const productModalState = {
+    product: null,
+    variants: [],
+    selection: { size: '', color: '', material: '' }
+};
 
 // ===== CATEGORIES =====
 export async function loadCategoriesData() {
@@ -127,8 +137,8 @@ export async function loadProducts(categoryId = null, search = null) {
                     <h3 onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">${p.product_name}</h3>
                     ${formatPriceHtml(p.price, p.discount_price)}
                     <button class="add-to-cart-btn"
-                            onclick="window._cart.addToCart(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')">
-                        <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
+                            onclick="window._products.openProductModal(${p.id})">
+                        <i class="fas fa-sliders-h"></i> Chọn biến thể
                     </button>
                 </div>
             </div>`;
@@ -232,9 +242,9 @@ function renderCollectionProducts(products) {
                 ${formatPriceHtml(p.price, p.discount_price, 'gia-sp')}
                 ${stockHTML}
                 <button class="add-to-cart-btn"
-                        onclick="window._cart.addToCart(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')"
+                        onclick="window._products.openProductModal(${p.id})"
                         ${p.stock_quantity <= 0 ? 'disabled' : ''}>
-                    <i class="fas fa-shopping-bag"></i> Thêm vào giỏ
+                    <i class="fas fa-sliders-h"></i> Chọn biến thể
                 </button>
             </div>
         </div>`;
@@ -376,7 +386,6 @@ export async function openProductModal(productId, options = {}) {
         const unitPrice = getEffectivePrice(p);
 
         const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const priceBlock = formatPriceHtml(p.price, p.discount_price, 'product-detail-price');
         const reviewsHtml = (reviewData.reviews || []).map(r => `
             <div class="review-item">
                 <div class="product-rating-summary">${renderStars(r.rating)} <strong>${escapeHtml(r.full_name || r.username)}</strong></div>
@@ -403,6 +412,15 @@ export async function openProductModal(productId, options = {}) {
             });
         }
 
+        const variants = p.variants || [];
+        productModalState.product = p;
+        productModalState.variants = variants;
+        productModalState.selection = getDefaultSelection(variants);
+
+        const variantPickersHtml = variants.length
+            ? `<div class="variant-picker" id="variantPicker">${renderVariantPickers(variants, productModalState.selection)}</div>`
+            : '<p class="review-hint">Sản phẩm chưa có biến thể.</p>';
+
         body.innerHTML = `
             <div class="product-detail-layout">
                 <div class="product-detail-images">
@@ -414,22 +432,22 @@ export async function openProductModal(productId, options = {}) {
                 <div class="product-detail-info">
                     <div class="product-detail-category">${p.category_name}</div>
                     <h2>${p.product_name}</h2>
-                    ${priceBlock}
+                    <div class="product-detail-price" id="modalVariantPrice"></div>
                     <div class="product-rating-summary">${renderStars(reviewData.summary?.average || 0)} <span>${reviewData.summary?.count || 0} đánh giá</span></div>
                     <p class="product-detail-desc">${p.description || 'Không có mô tả cho sản phẩm này.'}</p>
                     <div class="product-specs">
-                        <p><strong>Tình trạng:</strong> ${p.stock_quantity > 0 ? '<span style="color:#27ae60">Còn hàng (' + p.stock_quantity + ')</span>' : '<span style="color:#e74c3c">Hết hàng</span>'}</p>
-                        ${p.attributes?.dimensions ? `<p><strong>Kích thước:</strong> ${p.attributes.dimensions}</p>` : ''}
-                        ${p.attributes?.material ? `<p><strong>Chất liệu:</strong> ${p.attributes.material}</p>` : ''}
+                        <p id="modalVariantStock"></p>
                     </div>
+                    ${variantPickersHtml}
+                    <p class="selected-variant-summary" id="selectedVariantSummary"></p>
                     <div class="product-detail-actions">
                         <div class="product-qty-selector">
                             <button class="product-qty-btn" onclick="window._products.changeModalQty(-1)">-</button>
-                            <input type="number" class="product-qty-input" id="modalQtyInput" value="1" min="1" max="${p.stock_quantity > 0 ? p.stock_quantity : 1}">
+                            <input type="number" class="product-qty-input" id="modalQtyInput" value="1" min="1" max="1">
                             <button class="product-qty-btn" onclick="window._products.changeModalQty(1)">+</button>
                         </div>
-                        <button class="product-add-btn" 
-                                onclick="window._products.addToCartFromModal(${p.id}, '${safeName}', ${unitPrice}, '${thumb}')"
+                        <button class="product-add-btn" id="modalAddToCartBtn"
+                                onclick="window._products.addToCartFromModal()"
                                 ${p.stock_quantity <= 0 ? 'disabled' : ''}>
                             <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
                         </button>
@@ -444,6 +462,7 @@ export async function openProductModal(productId, options = {}) {
         `;
 
         setupReviewForm(productId, options);
+        setupVariantPickers();
 
         if (options.focusReview) {
             requestAnimationFrame(() => {
@@ -524,9 +543,53 @@ function changeModalQty(delta) {
     input.value = val;
 }
 
-async function addToCartFromModal(id, name, price, imageUrl) {
+function setupVariantPickers() {
+    const container = document.getElementById('variantPicker');
+    const { product, variants } = productModalState;
+    if (!container || !variants.length) return;
+
+    const refresh = (selection) => {
+        productModalState.selection = selection;
+        container.innerHTML = renderVariantPickers(variants, selection);
+        bindVariantPickers(container, variants, selection, refresh);
+
+        const variant = updateVariantSummary(product, variants, selection, {
+            priceEl: document.getElementById('modalVariantPrice'),
+            stockEl: document.getElementById('modalVariantStock'),
+            addBtn: document.getElementById('modalAddToCartBtn'),
+            qtyInput: document.getElementById('modalQtyInput')
+        });
+
+        const summaryEl = document.getElementById('selectedVariantSummary');
+        if (summaryEl) {
+            summaryEl.textContent = variant
+                ? `Đã chọn: ${formatVariantLabel(variant)}`
+                : 'Vui lòng chọn đủ kích cỡ, màu sắc và chất liệu';
+        }
+    };
+
+    refresh({ ...productModalState.selection });
+}
+
+async function addToCartFromModal() {
+    const { product, variants, selection } = productModalState;
+    if (!product) return;
+
+    const variant = findVariant(variants, selection);
+    if (!variant) {
+        showNotification('Vui lòng chọn đủ kích cỡ, màu sắc và chất liệu', 'warning');
+        return;
+    }
+    if (variant.stock_quantity <= 0) {
+        showNotification('Biến thể này đã hết hàng', 'error');
+        return;
+    }
+
     const qtyInput = document.getElementById('modalQtyInput');
-    const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+    const qty = qtyInput ? parseInt(qtyInput.value, 10) : 1;
+    const unitPrice = getVariantUnitPrice(product, variant);
+    const thumb = optimizeProductImage(product.thumbnail_url);
+    const name = product.product_name;
 
     if (state.currentUser) {
         try {
@@ -534,10 +597,10 @@ async function addToCartFromModal(id, name, price, imageUrl) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ product_id: id, quantity: qty })
+                body: JSON.stringify({ product_id: product.id, variant_id: variant.id, quantity: qty })
             });
             if (res.ok) {
-                showNotification(`Đã thêm ${qty} "${name}" vào giỏ hàng!`, 'success');
+                showNotification(`Đã thêm ${qty} "${name}" (${formatVariantLabel(variant)}) vào giỏ!`, 'success');
                 await syncCartFromServer();
                 closeProductModal();
             } else {
@@ -548,11 +611,21 @@ async function addToCartFromModal(id, name, price, imageUrl) {
             showNotification('Không thể kết nối server', 'error');
         }
     } else {
-        const existing = state.cart.find(item => item.id === id);
+        const existing = state.cart.find(item => item.id === product.id && item.variantId === variant.id);
         if (existing) {
             existing.quantity += qty;
         } else {
-            state.cart.push({ id, name, price, image: imageUrl, quantity: qty });
+            state.cart.push({
+                id: product.id,
+                variantId: variant.id,
+                name,
+                price: unitPrice,
+                image: thumb,
+                quantity: qty,
+                variantSize: variant.size,
+                variantColor: variant.color,
+                variantMaterial: variant.material
+            });
         }
         localStorage.setItem('luxdecor_cart', JSON.stringify(state.cart));
         const { updateCartUI } = await import('./cart.js');

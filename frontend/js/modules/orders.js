@@ -54,6 +54,7 @@ export async function loadOrders() {
                     <img class="order-item-thumb" src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}">
                     <div class="order-item-info">
                         <span class="order-item-name">${escapeHtml(item.product_name)}</span>
+                        ${item.variant_size ? `<span class="order-item-variant">${escapeHtml(item.variant_size)} · ${escapeHtml(item.variant_color)} · ${escapeHtml(item.variant_material)}</span>` : ''}
                         <span class="order-item-qty">x${item.quantity}</span>
                     </div>
                     <div class="order-item-price">
