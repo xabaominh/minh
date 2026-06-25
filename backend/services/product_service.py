@@ -3,6 +3,31 @@ from database import get_db
 from utils.helpers import decimal_to_float
 
 
+def _attach_variants_to_products(cursor, products, active_only=True):
+    """Gắn danh sách biến thể vào từng sản phẩm (một query batch)."""
+    product_ids = [p['id'] for p in products]
+    placeholders = ','.join(['%s'] * len(product_ids))
+    query = f"""
+        SELECT id, product_id, sku, size, color, material,
+               price, discount_price, stock_quantity, is_active
+        FROM product_variants
+        WHERE product_id IN ({placeholders})
+    """
+    if active_only:
+        query += " AND is_active = TRUE"
+    query += " ORDER BY product_id, id"
+    cursor.execute(query, product_ids)
+
+    variants_by_product = {}
+    for variant in cursor.fetchall():
+        variants_by_product.setdefault(variant['product_id'], []).append(variant)
+
+    for product in products:
+        variants = variants_by_product.get(product['id'], [])
+        product['variants'] = variants
+        product['variant_count'] = len(variants)
+
+
 def get_categories():
     """Lấy danh sách tất cả danh mục."""
     conn = None
@@ -22,7 +47,7 @@ def get_categories():
             conn.close()
 
 
-def get_products(category_id=None, search=None, limit=None, include_inactive=False):
+def get_products(category_id=None, search=None, limit=None, include_inactive=False, include_variants=False):
     """Lấy danh sách sản phẩm với bộ lọc tùy chọn."""
     conn = None
     cursor = None
@@ -67,6 +92,9 @@ def get_products(category_id=None, search=None, limit=None, include_inactive=Fal
                     p['attributes'] = json.loads(p['attributes'])
                 except:
                     pass
+
+        if include_variants and products:
+            _attach_variants_to_products(cursor, products, active_only=not include_inactive)
 
         return decimal_to_float(products), None
 

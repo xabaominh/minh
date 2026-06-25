@@ -138,7 +138,7 @@ export async function loadProducts(categoryId = null, search = null) {
                     ${formatPriceHtml(p.price, p.discount_price)}
                     <button class="add-to-cart-btn"
                             onclick="window._products.openProductModal(${p.id})">
-                        <i class="fas fa-sliders-h"></i> Chọn biến thể
+                        <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
                     </button>
                 </div>
             </div>`;
@@ -244,7 +244,7 @@ function renderCollectionProducts(products) {
                 <button class="add-to-cart-btn"
                         onclick="window._products.openProductModal(${p.id})"
                         ${p.stock_quantity <= 0 ? 'disabled' : ''}>
-                    <i class="fas fa-sliders-h"></i> Chọn biến thể
+                    <i class="fas fa-cart-plus"></i> Thêm Vào Giỏ
                 </button>
             </div>
         </div>`;

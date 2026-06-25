@@ -1,5 +1,6 @@
 import { API_BASE, state } from '../state.js';
 import { isManagementUser } from '../roles.js';
+import { formatVariantLabel } from '../variantUtils.js';
 
 const statusText = {
     PENDING: 'Chờ xử lý',
@@ -114,7 +115,7 @@ async function loadAdminProducts() {
     const list = document.getElementById('adminProductsList');
     if (!list) return;
 
-    list.innerHTML = '<tr><td colspan="7" class="admin-empty">Đang tải danh sách sản phẩm...</td></tr>';
+    list.innerHTML = '<tr><td colspan="8" class="admin-empty">Đang tải danh sách sản phẩm...</td></tr>';
     
     // Clear search input on fresh load
     const searchInput = document.getElementById('adminProductSearchInput');
@@ -129,7 +130,7 @@ async function loadAdminProducts() {
         adminProducts = data;
         renderAdminProducts(adminProducts);
     } catch (err) {
-        list.innerHTML = `<tr><td colspan="7" class="admin-empty error">${escapeHtml(err.message)}</td></tr>`;
+        list.innerHTML = `<tr><td colspan="8" class="admin-empty error">${escapeHtml(err.message)}</td></tr>`;
     }
 }
 
@@ -140,11 +141,24 @@ function renderAdminProducts(products) {
     if (products.length === 0) {
         const searchInput = document.getElementById('adminProductSearchInput');
         const hasQuery = searchInput && searchInput.value.trim().length > 0;
-        list.innerHTML = `<tr><td colspan="7" class="admin-empty">${hasQuery ? 'Không tìm thấy sản phẩm nào phù hợp.' : 'Không có sản phẩm nào.'}</td></tr>`;
+        list.innerHTML = `<tr><td colspan="8" class="admin-empty">${hasQuery ? 'Không tìm thấy sản phẩm nào phù hợp.' : 'Không có sản phẩm nào.'}</td></tr>`;
         return;
     }
 
-    list.innerHTML = products.map(p => `
+    list.innerHTML = products.map(p => {
+        const variants = p.variants || [];
+        const variantsHtml = variants.length
+            ? `<div class="admin-variant-list">
+                ${variants.map(v => `
+                    <span class="admin-variant-chip ${v.is_active ? '' : 'inactive'}" title="SKU: ${escapeHtml(v.sku || '')}">
+                        ${escapeHtml(formatVariantLabel(v))}
+                        <em>· ${formatNumber(v.stock_quantity || 0)} sp</em>
+                    </span>
+                `).join('')}
+               </div>`
+            : '<span class="admin-variant-empty">Chưa có biến thể</span>';
+
+        return `
         <tr>
             <td>
                 <img src="${escapeHtml(p.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(p.product_name)}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
@@ -159,6 +173,10 @@ function renderAdminProducts(products) {
                 ${p.discount_price ? `<div style="font-size: 0.85em; color: #e74c3c;">KM: ${formatCurrency(p.discount_price)}</div>` : ''}
             </td>
             <td>${formatNumber(p.stock_quantity)}</td>
+            <td class="admin-product-variants-cell">
+                ${variants.length ? `<div class="admin-variant-count">${variants.length} biến thể</div>` : ''}
+                ${variantsHtml}
+            </td>
             <td>
                 <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85em; ${p.is_active ? 'background: #e8f5e9; color: #2e7d32;' : 'background: #ffebee; color: #c62828;'}">
                     ${p.is_active ? 'Đang bán' : 'Ngừng bán'}
@@ -169,7 +187,8 @@ function renderAdminProducts(products) {
                 <button class="delete-product-btn" data-id="${p.id}" style="background: none; border: none; color: #e74c3c; cursor: pointer;" title="Xóa" onclick="if(window._adminUtils) window._adminUtils.deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 
     // Attach events (still kept as backup but inline handles it directly)
     document.querySelectorAll('.edit-product-btn').forEach(btn => {
@@ -592,12 +611,15 @@ function openProductModal(productId = null) {
                 document.getElementById('ap_thumbnail').value = p.thumbnail_url || '';
                 document.getElementById('ap_active').value = p.is_active ? 'true' : 'false';
                 document.getElementById('ap_description').value = p.description || '';
+                renderProductModalVariants(p.variants || []);
             } else {
                 console.warn("Không tìm thấy dữ liệu cho ID:", productId);
+                renderProductModalVariants([]);
             }
         } else {
             title.textContent = 'Thêm Sản phẩm';
             document.getElementById('ap_id').value = '';
+            renderProductModalVariants([]);
         }
         
         modal.style.setProperty('display', 'block', 'important');
@@ -734,15 +756,21 @@ function renderAdminOrders(orders) {
 
         const statusOptions = buildStatusDropdown(order.id, order.order_status);
 
-        const itemsHtml = (order.items || []).map(item => `
+        const itemsHtml = (order.items || []).map(item => {
+            const variantLabel = formatOrderItemVariant(item);
+            return `
             <div class="admin-order-item-row">
                 <img src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}" class="admin-order-item-thumb">
-                <span class="admin-order-item-name">${escapeHtml(item.product_name)}</span>
+                <div class="admin-order-item-name">
+                    <span class="admin-order-item-title">${escapeHtml(item.product_name)}</span>
+                    ${variantLabel ? `<span class="admin-order-item-variant"><i class="fas fa-sliders-h"></i> ${escapeHtml(variantLabel)}</span>` : ''}
+                </div>
                 <span class="admin-order-item-qty">x${item.quantity}</span>
                 <span class="admin-order-item-price">${formatCurrency(item.price)}</span>
                 <span class="admin-order-item-subtotal">${formatCurrency(item.price * item.quantity)}</span>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         return `
             <tr class="admin-order-row" onclick="this.nextElementSibling.classList.toggle('show')" style="cursor:pointer;" title="Click để xem chi tiết sản phẩm">
@@ -929,6 +957,41 @@ function formatCurrency(value) {
 
 function formatNumber(value) {
     return new Intl.NumberFormat('vi-VN').format(value);
+}
+
+function formatOrderItemVariant(item) {
+    if (item.variant_size || item.variant_color || item.variant_material) {
+        return [item.variant_size, item.variant_color, item.variant_material]
+            .filter(Boolean)
+            .join(' · ');
+    }
+    if (item.variant_id) {
+        return `Biến thể #${item.variant_id}`;
+    }
+    return '';
+}
+
+function renderProductModalVariants(variants) {
+    const wrap = document.getElementById('ap_variants_wrap');
+    const list = document.getElementById('ap_variants_list');
+    if (!wrap || !list) return;
+
+    if (!variants.length) {
+        wrap.style.display = 'none';
+        list.innerHTML = '';
+        return;
+    }
+
+    wrap.style.display = 'block';
+    list.innerHTML = variants.map(v => `
+        <div class="admin-modal-variant-item">
+            <span class="admin-variant-chip">${escapeHtml(formatVariantLabel(v))}</span>
+            <span class="admin-modal-variant-meta">
+                SKU: ${escapeHtml(v.sku || '—')} · Tồn: ${formatNumber(v.stock_quantity || 0)}
+                ${!v.is_active ? ' · <em>Ngừng bán</em>' : ''}
+            </span>
+        </div>
+    `).join('');
 }
 
 function escapeHtml(value) {

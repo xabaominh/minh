@@ -154,13 +154,14 @@
                             <th>Danh mục</th>
                             <th>Giá (VNĐ)</th>
                             <th>Tồn kho</th>
+                            <th>Biến thể</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="adminProductsList">
                         <tr>
-                            <td colspan="7" class="admin-empty">Đang tải danh sách sản phẩm...</td>
+                            <td colspan="8" class="admin-empty">Đang tải danh sách sản phẩm...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -253,6 +254,10 @@
             <div class="admin-form-group">
                 <label class="admin-form-label">Mô tả</label>
                 <textarea id="ap_description" rows="3" class="admin-form-control"></textarea>
+            </div>
+            <div class="admin-form-group" id="ap_variants_wrap" style="display: none;">
+                <label class="admin-form-label">Biến thể sản phẩm</label>
+                <div class="admin-modal-variants-list" id="ap_variants_list"></div>
             </div>
             <div class="admin-form-actions">
                 <button type="button" class="admin-btn-cancel" id="cancelProductBtn">Hủy bỏ</button>

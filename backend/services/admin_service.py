@@ -110,7 +110,8 @@ def get_all_orders(status_filter=None):
         for order in orders:
             _serialize_dates(order)
             cursor.execute("""
-                SELECT oi.product_name, oi.quantity, oi.price, pr.thumbnail_url
+                SELECT oi.product_name, oi.quantity, oi.price, pr.thumbnail_url,
+                       oi.variant_id, oi.variant_size, oi.variant_color, oi.variant_material
                 FROM order_items oi
                 LEFT JOIN products pr ON oi.product_id = pr.id
                 WHERE oi.order_id = %s

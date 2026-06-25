@@ -23,7 +23,7 @@ def admin_get_products():
     search = request.args.get('search')
     
     # allow fetching inactive products
-    products, error = get_products(category_id=category_id, search=search, include_inactive=True)
+    products, error = get_products(category_id=category_id, search=search, include_inactive=True, include_variants=True)
     if error:
         return jsonify({"error": error}), 500
     return jsonify(products), 200
