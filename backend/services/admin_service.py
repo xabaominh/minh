@@ -129,7 +129,7 @@ def get_all_orders(status_filter=None):
             conn.close()
 
 
-def update_order_status(order_id, new_status):
+def update_order_status(order_id, new_status, admin_id=None):
     """Cập nhật trạng thái đơn hàng."""
     valid_statuses = ('PENDING', 'CONFIRMED', 'SHIPPING', 'COMPLETED', 'CANCELLED')
     new_status = new_status.upper()
@@ -144,7 +144,7 @@ def update_order_status(order_id, new_status):
         cursor = conn.cursor(dictionary=True)
 
         # Kiểm tra đơn hàng tồn tại
-        cursor.execute("SELECT id, order_status FROM orders WHERE id = %s", (order_id,))
+        cursor.execute("SELECT id, user_id, order_status FROM orders WHERE id = %s", (order_id,))
         order = cursor.fetchone()
 
         if not order:
@@ -203,6 +203,53 @@ def update_order_status(order_id, new_status):
                 "UPDATE payments SET payment_status = 'FAILED' WHERE order_id = %s",
                 (order_id,)
             )
+
+        # Gửi thông báo chat cho khách hàng nếu trạng thái thay đổi
+        if new_status != current_status:
+            customer_id = order['user_id']
+            
+            # Lấy hoặc tạo cuộc trò chuyện OPEN cho khách hàng này
+            cursor.execute(
+                "SELECT id FROM chat_conversations WHERE user_id = %s AND status = 'OPEN' LIMIT 1",
+                (customer_id,)
+            )
+            conv = cursor.fetchone()
+            if not conv:
+                cursor.execute(
+                    "INSERT INTO chat_conversations (user_id, subject, status) VALUES (%s, %s, %s)",
+                    (customer_id, 'Hỗ trợ khách hàng', 'OPEN')
+                )
+                conv_id = cursor.lastrowid
+            else:
+                conv_id = conv['id']
+                
+            msg_body = ""
+            if new_status == 'CONFIRMED':
+                msg_body = f"Xin chào, đơn hàng #{order_id} của bạn đã được xác nhận thành công và đang được chuẩn bị để giao hàng."
+            elif new_status == 'SHIPPING':
+                msg_body = f"Đơn hàng #{order_id} của bạn đã được bàn giao cho đối tác vận chuyển và đang trên đường giao tới bạn."
+            elif new_status == 'COMPLETED':
+                msg_body = f"Đơn hàng #{order_id} của bạn đã giao thành công. Cảm ơn bạn đã mua sắm tại LuxDecor! Bạn có thể gửi đánh giá cho sản phẩm trong phần lịch sử đơn hàng."
+            elif new_status == 'CANCELLED':
+                msg_body = f"Đơn hàng #{order_id} của bạn đã được hủy. Nếu bạn có bất kỳ thắc mắc nào, vui lòng gửi phản hồi tại đây để được hỗ trợ."
+                
+            if msg_body:
+                if not admin_id:
+                    cursor.execute("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1")
+                    admin_row = cursor.fetchone()
+                    if admin_row:
+                        admin_id = admin_row['id']
+                    else:
+                        admin_id = 1
+                        
+                cursor.execute(
+                    "INSERT INTO chat_messages (conversation_id, sender_id, body) VALUES (%s, %s, %s)",
+                    (conv_id, admin_id, msg_body)
+                )
+                cursor.execute(
+                    "UPDATE chat_conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = %s",
+                    (conv_id,)
+                )
 
         conn.commit()
         return True, None, 200

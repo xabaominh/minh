@@ -122,6 +122,43 @@ function renderMessages(messages, append = false) {
         container.appendChild(bubble);
     });
 
+    // Gắn click handler cho các link đơn hàng bên phía user
+    container.querySelectorAll('.chat-order-link:not([data-bound])').forEach(link => {
+        link.setAttribute('data-bound', '1');
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const orderId = parseInt(link.dataset.orderId);
+            
+            // 1. Chuyển view sang 'orders'
+            const { switchView } = await import('../router.js');
+            await switchView('orders');
+            
+            // Đóng cửa sổ chat để người dùng thấy danh sách đơn hàng
+            closeChat();
+            
+            // 2. Tìm và cuộn đến thẻ đơn hàng tương ứng
+            setTimeout(() => {
+                const orderCards = document.querySelectorAll('.order-card');
+                for (const card of orderCards) {
+                    const titleText = card.querySelector('.order-card-header strong')?.textContent || '';
+                    if (titleText.includes(`#${orderId}`)) {
+                        // Highlight và cuộn tới đơn hàng
+                        card.style.background = 'rgba(201, 168, 76, 0.08)';
+                        card.style.border = '2px solid var(--accent)';
+                        card.style.borderRadius = '12px';
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        setTimeout(() => {
+                            card.style.background = '';
+                            card.style.border = '';
+                        }, 5000);
+                        return;
+                    }
+                }
+            }, 650);
+        });
+    });
+
     container.scrollTop = container.scrollHeight;
 }
 

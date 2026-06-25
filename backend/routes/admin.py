@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from middleware.auth_middleware import role_required
 from services.admin_service import get_dashboard_data, get_all_orders, update_order_status
 from services.product_service import get_products, create_product, update_product, delete_product, get_next_sku
@@ -84,7 +84,8 @@ def admin_update_order_status(order_id):
     if not data or not data.get('status'):
         return jsonify({"error": "Vui lòng cung cấp trạng thái mới"}), 400
 
-    success, error, status = update_order_status(order_id, data['status'])
+    admin_id = session.get('user_id')
+    success, error, status = update_order_status(order_id, data['status'], admin_id=admin_id)
     if error:
         return jsonify({"error": error}), status
 
