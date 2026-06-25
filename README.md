@@ -13,8 +13,8 @@ Dự án đã được tái cấu trúc thành một **Single Page Application (
 Cơ sở dữ liệu đã được chuẩn hóa để bao gồm: Quản lý địa chỉ giao hàng (user_addresses), Lịch sử thanh toán (payments), Mã giảm giá (coupons), Đánh giá (reviews), và Sản phẩm yêu thích (wishlist).
 
 1. Mở công cụ quản lý MySQL của bạn.
-2. Mở và chạy file `backend/migrations/schema.sql` để tạo database `furniture_shop` và cấu trúc các bảng mới nhất.
-3. Mở và chạy file `backend/migrations/seed.sql` để chèn dữ liệu mẫu (sản phẩm, danh mục, users...).
+2. Mở và chạy file `backend/migrations/schema.sql` để tạo database `furniture_shop`, toàn bộ bảng, và cả dữ liệu mẫu.
+3. Không cần chạy thêm file SQL nào khác; logic trước đây ở `chat.sql`, `coupons_and_discounts.sql`, `review_order_id.sql`, và `seed.sql` đã được gộp vào `schema.sql`.
 
 > **Lưu ý:** User mẫu có sẵn:
 > - **Admin:** `admin` / `123456`

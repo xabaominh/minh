@@ -1,3 +1,9 @@
+-- =====================================================
+-- LuxDecor — Database Schema
+-- File duy nhất chứa toàn bộ cấu trúc bảng
+-- Chạy file này để tạo DB từ đầu
+-- =====================================================
+
 DROP DATABASE IF EXISTS furniture_shop;
 CREATE DATABASE furniture_shop CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE furniture_shop;
