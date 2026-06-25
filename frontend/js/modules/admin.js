@@ -152,6 +152,7 @@ function renderAdminProducts(products) {
             <td>
                 <div style="font-weight: 500;">${escapeHtml(p.product_name)}</div>
                 <div style="font-size: 0.85em; color: var(--text-muted);">${escapeHtml(p.sku)}</div>
+                ${p.variant_count > 0 ? `<div style="font-size: 0.8em; color: var(--primary); font-weight: 500; margin-top: 2px;"><i class="fas fa-tags"></i> ${p.variant_count} phân loại</div>` : ''}
             </td>
             <td>${escapeHtml(p.category_name || 'N/A')}</td>
             <td>
@@ -800,7 +801,10 @@ function renderAdminOrders(orders) {
         const itemsHtml = (order.items || []).map(item => `
             <div class="admin-order-item-row">
                 <img src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}" class="admin-order-item-thumb">
-                <span class="admin-order-item-name">${escapeHtml(item.product_name)}</span>
+                <span class="admin-order-item-name">
+                    ${escapeHtml(item.product_name)}
+                    ${item.variant_name ? `<span class="admin-order-item-variant" style="display: block; font-size: 0.85em; color: var(--text-muted); margin-top: 2px;">Phân loại: ${escapeHtml(item.variant_name)}</span>` : ''}
+                </span>
                 <span class="admin-order-item-qty">x${item.quantity}</span>
                 <span class="admin-order-item-price">${formatCurrency(item.price)}</span>
                 <span class="admin-order-item-subtotal">${formatCurrency(item.price * item.quantity)}</span>
