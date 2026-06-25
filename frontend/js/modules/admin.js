@@ -181,6 +181,27 @@ function renderAdminProducts(products) {
     });
 }
 
+async function fetchNextSkuForSelectedCategory() {
+    if (isEditingProduct) return;
+    
+    const catSelect = document.getElementById('ap_category');
+    const skuInput = document.getElementById('ap_sku');
+    if (!catSelect || !skuInput) return;
+    
+    const categoryId = catSelect.value;
+    if (!categoryId) return;
+    
+    try {
+        const res = await fetch(`${API_BASE}/admin/products/next-sku?category_id=${categoryId}`, { credentials: 'include' });
+        const data = await res.json();
+        if (res.ok && data.next_sku) {
+            skuInput.value = data.next_sku;
+        }
+    } catch (err) {
+        console.error("Lỗi tự động sinh SKU:", err);
+    }
+}
+
 function setupProductModal() {
     const addBtn = document.getElementById('adminAddProductBtn');
     const closeBtn = document.getElementById('closeProductModalBtn');
@@ -191,6 +212,11 @@ function setupProductModal() {
     if (closeBtn) closeBtn.onclick = closeProductModal;
     if (cancelBtn) cancelBtn.onclick = closeProductModal;
     if (form) form.onsubmit = saveProduct;
+    
+    const catSelect = document.getElementById('ap_category');
+    if (catSelect) {
+        catSelect.addEventListener('change', fetchNextSkuForSelectedCategory);
+    }
     
     // Load categories for select
     loadCategoriesForSelect();
@@ -612,6 +638,7 @@ function openProductModal(productId = null) {
             title.textContent = 'Thêm Sản phẩm';
             document.getElementById('ap_id').value = '';
             renderAdminProductVariants([]);
+            fetchNextSkuForSelectedCategory();
         }
         
         modal.style.setProperty('display', 'block', 'important');
@@ -641,9 +668,12 @@ function addVariantRow(v = {}) {
     row.className = 'admin-variant-row';
     if (v.id) row.dataset.variantId = v.id;
     
+    const prodSku = document.getElementById('ap_sku')?.value || '';
+    const defaultSku = v.sku || (prodSku ? `${prodSku}-` : '');
+
     row.innerHTML = `
         <input type="text" class="var-name" placeholder="Phân loại (vd: Đỏ / S)" value="${escapeHtml(v.variant_name || '')}" required>
-        <input type="text" class="var-sku" placeholder="SKU" value="${escapeHtml(v.sku || '')}" required>
+        <input type="text" class="var-sku" placeholder="SKU" value="${escapeHtml(defaultSku)}" required>
         <input type="number" class="var-price" placeholder="Giá" value="${v.price || ''}" required>
         <input type="number" class="var-discount" placeholder="KM" value="${v.discount_price || ''}">
         <input type="number" class="var-stock" placeholder="Kho" value="${v.stock_quantity ?? 0}">

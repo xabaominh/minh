@@ -311,3 +311,73 @@ def delete_product(product_id):
             cursor.close()
         if conn:
             conn.close()
+
+
+def get_next_sku(category_id):
+    """Tính toán mã SKU tiếp theo cho danh mục dựa trên tiền tố của danh mục."""
+    if not category_id:
+        return None, "Vui lòng chọn danh mục"
+        
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        # 1. Lấy tên danh mục
+        cursor.execute("SELECT category_name FROM categories WHERE id = %s", (category_id,))
+        cat = cursor.fetchone()
+        if not cat:
+            return None, "Không tìm thấy danh mục"
+            
+        category_name = cat['category_name']
+        
+        # 2. Sinh tiền tố từ tên danh mục
+        import unicodedata
+        import re
+        
+        # Chuẩn hóa loại bỏ dấu tiếng Việt
+        nfkd_form = unicodedata.normalize('NFKD', category_name)
+        only_ascii = nfkd_form.encode('ASCII', 'ignore').decode('ASCII')
+        
+        # Lấy các chữ cái đầu tiên của từng từ
+        words = re.findall(r'[a-zA-Z]+', only_ascii)
+        if words:
+            prefix = ''.join([w[0].upper() for w in words])
+        else:
+            prefix = 'SP'
+            
+        # 3. Tìm tất cả SKU có tiền tố này trong DB để tìm số lớn nhất
+        cursor.execute(
+            "SELECT sku FROM products WHERE sku LIKE %s AND deleted_at IS NULL",
+            (f"{prefix}%",)
+        )
+        rows = cursor.fetchall()
+        
+        max_num = 0
+        for r in rows:
+            sku = r['sku']
+            # Trích xuất phần số sau tiền tố
+            num_part = sku[len(prefix):]
+            try:
+                # Tìm số nguyên
+                match = re.search(r'\d+', num_part)
+                if match:
+                    num = int(match.group())
+                    if num > max_num:
+                        max_num = num
+            except ValueError:
+                pass
+                
+        next_num = max_num + 1
+        next_sku = f"{prefix}{next_num:03d}"
+        
+        return next_sku, None
+    except mysql.connector.Error as err:
+        print(f"Get Next SKU Error: {err}")
+        return None, "Lỗi tính toán SKU"
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
