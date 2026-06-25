@@ -11,12 +11,18 @@ USE furniture_shop;
 -- =====================================
 INSERT INTO users (id, username, email, password_hash, full_name, phone, role) VALUES
 (1, 'admin', 'admin@luxdecor.vn', 'scrypt:32768:8:1$Bbaj1GgCjacQvg0I$f07677d322b19fe6dae76b73f4116ce9c0ad867bb19304e2ab2e0123a95ba02a9d854328c88a9200f3678af8f5a6494487c5741cd24b10b684bbe41defb879f3', 'Quản Trị Viên', '0901234567', 'ADMIN'),
-(2, 'user1', 'user1@gmail.com', 'scrypt:32768:8:1$Bbaj1GgCjacQvg0I$f07677d322b19fe6dae76b73f4116ce9c0ad867bb19304e2ab2e0123a95ba02a9d854328c88a9200f3678af8f5a6494487c5741cd24b10b684bbe41defb879f3', 'Nguyễn Văn A', '0912345678', 'USER');
+(2, 'user1', 'user1@gmail.com', 'scrypt:32768:8:1$Bbaj1GgCjacQvg0I$f07677d322b19fe6dae76b73f4116ce9c0ad867bb19304e2ab2e0123a95ba02a9d854328c88a9200f3678af8f5a6494487c5741cd24b10b684bbe41defb879f3', 'Nguyễn Văn A', '0912345678', 'USER'),
+(3, 'user2', 'user2@gmail.com', 'scrypt:32768:8:1$Bbaj1GgCjacQvg0I$f07677d322b19fe6dae76b73f4116ce9c0ad867bb19304e2ab2e0123a95ba02a9d854328c88a9200f3678af8f5a6494487c5741cd24b10b684bbe41defb879f3', 'Trần Thị B', '0923456789', 'USER'),
+(4, 'user3', 'user3@gmail.com', 'scrypt:32768:8:1$Bbaj1GgCjacQvg0I$f07677d322b19fe6dae76b73f4116ce9c0ad867bb19304e2ab2e0123a95ba02a9d854328c88a9200f3678af8f5a6494487c5741cd24b10b684bbe41defb879f3', 'Lê Văn C', '0934567890', 'USER'),
+(5, 'user4', 'user4@gmail.com', 'scrypt:32768:8:1$Bbaj1GgCjacQvg0I$f07677d322b19fe6dae76b73f4116ce9c0ad867bb19304e2ab2e0123a95ba02a9d854328c88a9200f3678af8f5a6494487c5741cd24b10b684bbe41defb879f3', 'Phạm Minh D', '0945678901', 'USER');
 
 -- Địa chỉ user
 INSERT INTO user_addresses (user_id, receiver_name, phone, address_line, is_default) VALUES
 (1, 'Quản Trị Viên', '0901234567', 'Hà Nội', TRUE),
-(2, 'Nguyễn Văn A', '0912345678', '123 Lê Lợi, Q1, TP.HCM', TRUE);
+(2, 'Nguyễn Văn A', '0912345678', '123 Lê Lợi, Q1, TP.HCM', TRUE),
+(3, 'Trần Thị B', '0923456789', '456 Nguyễn Thị Minh Khai, Q3, TP.HCM', TRUE),
+(4, 'Lê Văn C', '0934567890', '789 Trần Hưng Đạo, Q5, TP.HCM', TRUE),
+(5, 'Phạm Minh D', '0945678901', '101 Cầu Giấy, Q.Cầu Giấy, Hà Nội', TRUE);
 
 -- =====================================
 -- 2. DANH MỤC
@@ -88,6 +94,83 @@ INSERT INTO coupons (code, discount_amount, discount_type, min_order_amount, val
 -- 6. ĐÁNH GIÁ MẪU
 -- =====================================
 INSERT INTO reviews (user_id, product_id, rating, comment) VALUES
+-- PK001 (Sofa Xám Hiện Đại)
 (2, 1, 5, 'Sofa rất đẹp, chất lượng tốt, giao hàng nhanh.'),
-(2, 2, 4, 'Giường ngủ êm, màu sắc đúng như hình.'),
-(2, 6, 5, 'Bàn ăn gỗ tự nhiên, rất hài lòng!');
+(3, 1, 4, 'Đệm ngồi êm ái, màu xám sang trọng, đóng gói cẩn thận.'),
+(4, 1, 5, 'Cực kỳ ưng ý luôn, nhân viên giao hàng nhiệt tình!'),
+
+-- PK002 (Sofa Góc Chữ L Nâu)
+(2, 2, 4, 'Sofa góc rộng rãi thoải mái, da PU mềm đẹp.'),
+(4, 2, 5, 'Đẹp xuất sắc, rất xứng đáng với giá tiền.'),
+
+-- PK003 (Bàn Trà Gỗ Sồi)
+(3, 3, 5, 'Gỗ sồi tự nhiên chắc chắn, góc cạnh mài nhẵn mịn màng.'),
+(5, 3, 4, 'Bàn trà nhỏ gọn xinh xắn, chuẩn phong cách Scandinavian.'),
+
+-- PK004 (Kệ Tivi Gỗ Óc Chó)
+(4, 4, 5, 'Gỗ óc chó màu rất sang, kệ chắc chắn và nặng tay.'),
+(3, 4, 4, 'Đẹp, nhiều ngăn chứa đồ tiện lợi.'),
+
+-- PK005 (Ghế Thư Giãn Bành)
+(5, 5, 5, 'Ngồi đọc sách cực êm và dễ chịu, rất đáng mua.'),
+(2, 5, 4, 'Kiểu dáng vintage rất đẹp, phù hợp với phòng khách nhà mình.'),
+
+-- PN001 (Giường Ngủ Gỗ Hiện Đại)
+(2, 6, 5, 'Giường gỗ thông lắp đặt chắc chắn, mùi gỗ tự nhiên dễ chịu.'),
+(4, 6, 5, 'Giường đẹp, cứng cáp, giao hàng đúng hẹn.'),
+
+-- PN002 (Tủ Quần Áo 3 Cánh)
+(3, 7, 4, 'Tủ rộng rãi, chứa được nhiều đồ, lắp ráp hơi lâu một chút.'),
+(5, 7, 5, 'Màu gỗ MDF phủ melamine rất mịn, đẹp hiện đại.'),
+
+-- PN003 (Bàn Đầu Giường Nhỏ Gọn)
+(4, 8, 5, 'Nhỏ gọn xinh xắn, để cạnh giường rất tiện.'),
+(2, 8, 4, 'Gỗ cao su hoàn thiện tốt, đóng gói kỹ lưỡng.'),
+
+-- PN004 (Đèn Ngủ Để Bàn)
+(3, 9, 5, 'Ánh sáng vàng ấm dịu, chao đèn vải linen nhìn rất cổ điển và sang.'),
+(5, 9, 4, 'Đèn đẹp, thiết kế tinh tế, ánh sáng vừa phải không chói mắt.'),
+
+-- PN005 (Gương Trang Điểm LED)
+(5, 10, 4, 'Đèn LED sáng, cảm ứng nhạy, soi gương rất rõ nét.'),
+(2, 10, 5, 'Quá tiện lợi luôn, có 3 chế độ màu cực kỳ thích.'),
+
+-- PA001 (Bàn Ăn Gỗ Trắc 6 Ghế)
+(3, 11, 5, 'Bàn ăn gỗ trắc quá đẳng cấp, mặt bàn dày dặn đẹp tuyệt vời.'),
+(4, 11, 5, 'Hàng cao cấp có khác, cả nhà ai cũng khen đẹp sang trọng.'),
+
+-- PA002 (Ghế Ăn Bọc Nệm Xám)
+(4, 12, 5, 'Ghế ăn ngồi êm, chân thép sơn tĩnh điện chắc chắn.'),
+(2, 12, 4, 'Nệm êm, bọc vải tốt, dễ dàng lau chùi vệ sinh.'),
+
+-- PA003 (Tủ Rượu Gỗ Sồi)
+(5, 13, 4, 'Trưng bày rượu nhìn sang hẳn phòng ăn, đèn LED lung linh.'),
+(3, 13, 5, 'Tủ chắc chắn, chất gỗ sồi rất đẹp và vân gỗ tự nhiên.'),
+
+-- PA004 (Bàn Ăn Tròn Đá Marble)
+(2, 14, 5, 'Mặt đá marble trắng bóng vân tự nhiên cực kỳ đẹp.'),
+(5, 14, 4, 'Bàn tròn tiết kiệm không gian, chân mạ vàng sáng loáng.'),
+
+-- VP001 (Ghế Công Thái Học Premium)
+(4, 15, 5, 'Ngồi làm việc cả ngày không bị đau lưng, tựa đầu và tay vịn điều chỉnh linh hoạt.'),
+(3, 15, 4, 'Rất nâng đỡ cột sống, chất liệu lưới thoáng mát.'),
+
+-- VP002 (Bàn Làm Việc Nâng Hạ)
+(5, 16, 5, 'Động cơ nâng hạ êm ái, ghi nhớ chiều cao rất tiện.'),
+(2, 16, 4, 'Khung thép chắc chắn, nâng lên hạ xuống mượt mà.'),
+
+-- VP003 (Kệ Sách 5 Tầng)
+(2, 17, 4, 'Kệ chắc chắn, để được nhiều sách, khung thép vững chãi.'),
+(4, 17, 5, 'Lắp đặt dễ dàng, gỗ công nghiệp nhưng hoàn thiện rất thẩm mỹ.'),
+
+-- VP004 (Đèn Bàn LED Thông Minh)
+(3, 18, 5, 'Có nhiều chế độ sáng và cổng USB sạc điện thoại cực tiện.'),
+(5, 18, 4, 'Đèn gập mở linh hoạt, ánh sáng bảo vệ mắt rất tốt.'),
+
+-- KD001 (Tủ Giày 4 Tầng)
+(4, 19, 4, 'Cánh lật thông minh tiết kiệm diện tích, chứa được nhiều giày.'),
+(2, 19, 5, 'Tủ đẹp, để được gọn gàng khoảng 16 đôi giày của gia đình.'),
+
+-- KD002 (Hộp Lưu Trữ Đa Năng)
+(5, 20, 5, 'Hộp vải dày dặn, cứng cáp, màu canvas sạch sẽ.'),
+(3, 20, 4, 'Tiện lợi để đựng đồ chơi cho bé hoặc quần áo xếp gọn.');
