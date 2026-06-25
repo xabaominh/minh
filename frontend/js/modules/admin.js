@@ -664,25 +664,51 @@ function addVariantRow(v = {}) {
     const container = document.getElementById('adminProductVariantsContainer');
     if (!container) return;
     
-    const row = document.createElement('div');
-    row.className = 'admin-variant-row';
-    if (v.id) row.dataset.variantId = v.id;
+    const index = container.querySelectorAll('.admin-variant-block').length + 1;
+    const block = document.createElement('div');
+    block.className = 'admin-variant-block';
+    if (v.id) block.dataset.variantId = v.id;
     
     const prodSku = document.getElementById('ap_sku')?.value || '';
     const defaultSku = v.sku || (prodSku ? `${prodSku}-` : '');
 
-    row.innerHTML = `
-        <input type="text" class="var-name" placeholder="Phân loại (vd: Đỏ / S)" value="${escapeHtml(v.variant_name || '')}" required>
-        <input type="text" class="var-sku" placeholder="SKU" value="${escapeHtml(defaultSku)}" required>
-        <input type="number" class="var-price" placeholder="Giá" value="${v.price || ''}" required>
-        <input type="number" class="var-discount" placeholder="KM" value="${v.discount_price || ''}">
-        <input type="number" class="var-stock" placeholder="Kho" value="${v.stock_quantity ?? 0}">
-        <input type="text" class="var-thumb" placeholder="Ảnh URL" value="${escapeHtml(v.thumbnail_url || '')}">
-        <button type="button" class="delete-var-btn" onclick="this.parentElement.remove()" title="Xóa">
-            <i class="fas fa-trash-alt"></i>
-        </button>
+    block.innerHTML = `
+        <div class="admin-variant-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed var(--border);">
+            <strong style="font-size: 0.95rem; color: var(--primary);">Phân loại #${index}</strong>
+            <button type="button" class="delete-var-btn" onclick="this.closest('.admin-variant-block').remove()" style="background: none; border: none; color: #e74c3c; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.85rem;" title="Xóa phân loại này">
+                <i class="fas fa-trash-alt"></i> Xóa
+            </button>
+        </div>
+        <div class="admin-form-row">
+            <div class="admin-form-col">
+                <label class="admin-form-label">Tên phân loại *</label>
+                <input type="text" class="admin-form-control var-name" placeholder="Ví dụ: Đệm Da / Màu Xám" value="${escapeHtml(v.variant_name || '')}" required>
+            </div>
+            <div class="admin-form-col">
+                <label class="admin-form-label">Mã SKU phân loại *</label>
+                <input type="text" class="admin-form-control var-sku" placeholder="SKU" value="${escapeHtml(defaultSku)}" required>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <div class="admin-form-col">
+                <label class="admin-form-label">Giá bán *</label>
+                <input type="number" class="admin-form-control var-price" placeholder="Giá" value="${v.price || ''}" required>
+            </div>
+            <div class="admin-form-col">
+                <label class="admin-form-label">Giá khuyến mãi</label>
+                <input type="number" class="admin-form-control var-discount" placeholder="Khuyến mãi" value="${v.discount_price || ''}">
+            </div>
+            <div class="admin-form-col">
+                <label class="admin-form-label">Số lượng tồn kho</label>
+                <input type="number" class="admin-form-control var-stock" placeholder="Kho" value="${v.stock_quantity ?? 0}">
+            </div>
+        </div>
+        <div class="admin-form-group" style="margin-bottom: 0;">
+            <label class="admin-form-label">Đường dẫn ảnh phân loại (URL)</label>
+            <input type="text" class="admin-form-control var-thumb" placeholder="Ảnh riêng cho phân loại này (không bắt buộc)" value="${escapeHtml(v.thumbnail_url || '')}">
+        </div>
     `;
-    container.appendChild(row);
+    container.appendChild(block);
 }
 
 function closeProductModal() {
@@ -710,8 +736,8 @@ async function saveProduct(e) {
     };
 
     // Đọc danh sách các biến thể từ giao diện
-    const variantRows = document.querySelectorAll('.admin-variant-row');
-    const variants = Array.from(variantRows).map(row => {
+    const variantBlocks = document.querySelectorAll('.admin-variant-block');
+    const variants = Array.from(variantBlocks).map(row => {
         const discountInput = row.querySelector('.var-discount').value;
         return {
             id: row.dataset.variantId ? parseInt(row.dataset.variantId) : null,

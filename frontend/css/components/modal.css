@@ -697,53 +697,21 @@
 .admin-variants-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
     margin-top: 10px;
 }
 
-.admin-variant-row {
-    display: grid;
-    grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 2fr auto;
-    gap: 10px;
-    align-items: center;
-    background: var(--bg-body);
-    padding: 8px;
-    border-radius: var(--radius-sm);
+.admin-variant-block {
+    background: #f8f9fa;
     border: 1px solid var(--border);
-}
-
-.admin-variant-row input {
-    width: 100%;
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    outline: none;
+    border-radius: 10px;
+    padding: 18px;
     transition: var(--transition);
 }
 
-.admin-variant-row input:focus {
-    border-color: var(--accent);
-}
-
-.admin-variant-row .delete-var-btn {
-    background: none;
-    border: none;
-    color: #e74c3c;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 30px;
-    width: 30px;
-    border-radius: 50%;
-}
-
-.admin-variant-row .delete-var-btn:hover {
-    background: #fdf2f2;
-    color: #c62828;
+.admin-variant-block:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* Button to add variants in admin form */
