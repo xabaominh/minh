@@ -102,7 +102,7 @@ INSERT INTO product_images (product_id, image_url, display_order) VALUES
 (8, 'https://images.pexels.com/photos/31967700/pexels-photo-31967700.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
 (8, 'https://images.pexels.com/photos/7195725/pexels-photo-7195725.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 9 (Đèn Ngủ Để Bàn)
-(9, 'https://images.pexels.com/photos/11125980/pexels-photo-11125980.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
+(9, 'https://images.pexels.com/photos/19227253/pexels-photo-19227253.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
 (9, 'https://images.pexels.com/photos/15519510/pexels-photo-15519510.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
 -- Product 10 (Gương Trang Điểm LED)
 (10, 'https://images.pexels.com/photos/13068369/pexels-photo-13068369.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
@@ -129,7 +129,7 @@ INSERT INTO product_images (product_id, image_url, display_order) VALUES
 (17, 'https://images.pexels.com/photos/17390716/pexels-photo-17390716.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
 (17, 'https://images.pexels.com/photos/16246163/pexels-photo-16246163.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 18 (Đèn Bàn LED Thông Minh)
-(18, 'https://images.pexels.com/photos/11125980/pexels-photo-11125980.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
+(18, 'https://images.pexels.com/photos/11784437/pexels-photo-11784437.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
 (18, 'https://images.pexels.com/photos/17994856/pexels-photo-17994856.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
 -- Product 19 (Tủ Giày 4 Tầng)
 (19, 'https://images.pexels.com/photos/37595189/pexels-photo-37595189.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
