@@ -289,13 +289,15 @@ export function resetFilters() {
     applyFilters();
 }
 
-// ===== SEARCH =====
+// ===== SEARCH & COLLECTION TOOLBAR =====
 let searchSetupDone = false;
+let collectionToolbarSetupDone = false;
+
 export function setupSearch() {
     if (searchSetupDone) return;
     searchSetupDone = true;
+
     const headerSearch = document.getElementById('searchInput');
-    const collectionSearch = document.getElementById('searchInputCollection');
     let debounceTimer;
 
     const doSearch = (value) => {
@@ -310,7 +312,7 @@ export function setupSearch() {
                 } else if (query.length === 0) {
                     loadProducts();
                 }
-            } else {
+            } else if (state.currentView === 'collection') {
                 state.currentSearch = query;
                 applyFilters();
             }
@@ -319,34 +321,51 @@ export function setupSearch() {
 
     if (headerSearch) {
         headerSearch.addEventListener('input', (e) => {
+            const collectionSearch = document.getElementById('searchInputCollection');
             if (collectionSearch) collectionSearch.value = e.target.value;
             doSearch(e.target.value);
         });
     }
-    if (collectionSearch) {
-        collectionSearch.addEventListener('input', (e) => {
+
+    setupCollectionToolbar(doSearch);
+}
+
+export function setupSorting() {
+    setupCollectionToolbar();
+}
+
+export function setupPriceFilter() {
+    setupCollectionToolbar();
+}
+
+function setupCollectionToolbar(doSearch) {
+    if (collectionToolbarSetupDone) return;
+    collectionToolbarSetupDone = true;
+
+    const viewSlot = document.getElementById('view-slot');
+    if (!viewSlot) return;
+
+    viewSlot.addEventListener('input', (e) => {
+        if (e.target.id === 'searchInputCollection' && doSearch) {
+            const headerSearch = document.getElementById('searchInput');
             if (headerSearch) headerSearch.value = e.target.value;
             doSearch(e.target.value);
-        });
-    }
-}
+        }
+    });
 
-let sortSetupDone = false;
-export function setupSorting() {
-    if (sortSetupDone) return;
-    sortSetupDone = true;
-    document.getElementById('sortSelect')?.addEventListener('change', applyFilters);
-}
+    viewSlot.addEventListener('change', (e) => {
+        if (e.target.id === 'sortSelect') applyFilters();
+    });
 
-let priceFilterSetupDone = false;
-export function setupPriceFilter() {
-    if (priceFilterSetupDone) return;
-    priceFilterSetupDone = true;
-    document.getElementById('filterPriceBtn')?.addEventListener('click', applyFilters);
-    ['priceMin', 'priceMax'].forEach(id => {
-        document.getElementById(id)?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') applyFilters();
-        });
+    viewSlot.addEventListener('click', (e) => {
+        if (e.target.closest('#filterPriceBtn')) applyFilters();
+    });
+
+    viewSlot.addEventListener('keydown', (e) => {
+        if ((e.target.id === 'priceMin' || e.target.id === 'priceMax') && e.key === 'Enter') {
+            e.preventDefault();
+            applyFilters();
+        }
     });
 }
  
