@@ -81,14 +81,14 @@ INSERT INTO product_images (product_id, image_url, display_order) VALUES
 (1, 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&q=80', 1),
 (1, 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=600&q=80', 2),
 -- Product 2 (Sofa Góc Chữ L Nâu)
-(2, 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
-(2, 'https://images.pexels.com/photos/3757055/pexels-photo-3757055.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
+(2, 'https://images.pexels.com/photos/36681535/pexels-photo-36681535.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(2, 'https://images.pexels.com/photos/7786775/pexels-photo-7786775.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 3 (Bàn Trà Gỗ Sồi)
-(3, 'https://images.pexels.com/photos/6580220/pexels-photo-6580220.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
-(3, 'https://images.pexels.com/photos/6588592/pexels-photo-6588592.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
+(3, 'https://images.pexels.com/photos/7607460/pexels-photo-7607460.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(3, 'https://images.pexels.com/photos/33219216/pexels-photo-33219216.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 4 (Kệ Tivi Gỗ Óc Chó)
-(4, 'https://images.pexels.com/photos/584399/pexels-photo-584399.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
-(4, 'https://images.pexels.com/photos/6980712/pexels-photo-6980712.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
+(4, 'https://images.pexels.com/photos/5755711/pexels-photo-5755711.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(4, 'https://images.pexels.com/photos/31338029/pexels-photo-31338029.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 5 (Ghế Thư Giãn Bành)
 (5, 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&q=80', 1),
 (5, 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80', 2),
@@ -96,26 +96,26 @@ INSERT INTO product_images (product_id, image_url, display_order) VALUES
 (6, 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&q=80', 1),
 (6, 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=600&q=80', 2),
 -- Product 7 (Tủ Quần Áo 3 Cánh)
-(7, 'https://images.pexels.com/photos/584399/pexels-photo-584399.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
-(7, 'https://images.pexels.com/photos/6045112/pexels-photo-6045112.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
+(7, 'https://images.pexels.com/photos/17495860/pexels-photo-17495860.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(7, 'https://images.pexels.com/photos/36887757/pexels-photo-36887757.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 8 (Bàn Đầu Giường Nhỏ Gọn)
-(8, 'https://images.pexels.com/photos/6316065/pexels-photo-6316065.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
-(8, 'https://images.pexels.com/photos/6316067/pexels-photo-6316067.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
+(8, 'https://images.pexels.com/photos/31967700/pexels-photo-31967700.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(8, 'https://images.pexels.com/photos/7195725/pexels-photo-7195725.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 9 (Đèn Ngủ Để Bàn)
 (9, 'https://images.pexels.com/photos/11125980/pexels-photo-11125980.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
 (9, 'https://images.pexels.com/photos/15519510/pexels-photo-15519510.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
 -- Product 10 (Gương Trang Điểm LED)
-(10, 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&q=80', 1),
-(10, 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600&q=80', 2),
+(10, 'https://images.pexels.com/photos/13068369/pexels-photo-13068369.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(10, 'https://images.pexels.com/photos/5646480/pexels-photo-5646480.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 11 (Bàn Ăn Gỗ Trắc 6 Ghế)
 (11, 'https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=600&q=80', 1),
 (11, 'https://images.unsplash.com/photo-1604014237800-1c9102c219da?w=600&q=80', 2),
 -- Product 12 (Ghế Ăn Bọc Nệm Xám)
-(12, 'https://images.pexels.com/photos/15071700/pexels-photo-15071700.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
-(12, 'https://images.pexels.com/photos/15071701/pexels-photo-15071701.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
+(12, 'https://images.pexels.com/photos/6920630/pexels-photo-6920630.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(12, 'https://images.pexels.com/photos/6920630/pexels-photo-6920630.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 13 (Tủ Rượu Gỗ Sồi)
-(13, 'https://images.pexels.com/photos/27819661/pexels-photo-27819661.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
-(13, 'https://images.pexels.com/photos/27819662/pexels-photo-27819662.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
+(13, 'https://images.pexels.com/photos/27819641/pexels-photo-27819641.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(13, 'https://images.pexels.com/photos/34937973/pexels-photo-34937973.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 14 (Bàn Ăn Tròn Đá Marble)
 (14, 'https://images.pexels.com/photos/32709577/pexels-photo-32709577.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
 (14, 'https://images.pexels.com/photos/32709578/pexels-photo-32709578.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
@@ -123,11 +123,11 @@ INSERT INTO product_images (product_id, image_url, display_order) VALUES
 (15, 'https://images.pexels.com/photos/1957477/pexels-photo-1957477.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
 (15, 'https://images.pexels.com/photos/1957478/pexels-photo-1957478.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
 -- Product 16 (Bàn Làm Việc Nâng Hạ)
-(16, 'https://images.unsplash.com/photo-1530018607912-eff2df114f12?w=600&q=80', 1),
-(16, 'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=600&q=80', 2),
+(16, 'https://images.pexels.com/photos/8001042/pexels-photo-8001042.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(16, 'https://images.pexels.com/photos/8001034/pexels-photo-8001034.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 17 (Kệ Sách 5 Tầng)
-(17, 'https://images.pexels.com/photos/4440117/pexels-photo-4440117.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
-(17, 'https://images.pexels.com/photos/4440118/pexels-photo-4440118.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),
+(17, 'https://images.pexels.com/photos/17390716/pexels-photo-17390716.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 1),
+(17, 'https://images.pexels.com/photos/16246163/pexels-photo-16246163.jpeg?auto=compress&cs=srgb&w=960&h=720&fit=crop', 2),
 -- Product 18 (Đèn Bàn LED Thông Minh)
 (18, 'https://images.pexels.com/photos/11125980/pexels-photo-11125980.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 1),
 (18, 'https://images.pexels.com/photos/17994856/pexels-photo-17994856.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 2),

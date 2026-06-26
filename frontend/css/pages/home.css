@@ -135,6 +135,8 @@
     border: 1px solid var(--border);
     opacity: 0;
     transform: translateY(30px);
+    content-visibility: auto;
+    contain-intrinsic-size: 360px;
 }
 
 .the-san-pham.revealed {
@@ -152,6 +154,11 @@
     position: relative;
     overflow: hidden;
     aspect-ratio: 4 / 3;
+    background: #eceff3;
+}
+
+.lazy-product-img {
+    background: #eceff3;
 }
 
 .product-img-wrapper img {

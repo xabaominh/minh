@@ -1,5 +1,6 @@
 import { API_BASE, state } from '../state.js';
 import { isManagementUser } from '../roles.js';
+import { optimizeProductImage } from '../imageUtils.js';
 
 const statusText = {
     PENDING: 'Chờ xử lý',
@@ -147,7 +148,7 @@ function renderAdminProducts(products) {
     list.innerHTML = products.map(p => `
         <tr>
             <td>
-                <img src="${escapeHtml(p.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(p.product_name)}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                <img src="${escapeHtml(optimizeProductImage(p.thumbnail_url || 'img/placeholder.jpg', 'mini'))}" alt="${escapeHtml(p.product_name)}" loading="lazy" decoding="async" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
             </td>
             <td>
                 <div style="font-weight: 500;">${escapeHtml(p.product_name)}</div>
@@ -856,7 +857,7 @@ function renderAdminOrders(orders) {
 
         const itemsHtml = (order.items || []).map(item => `
             <div class="admin-order-item-row">
-                <img src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}" class="admin-order-item-thumb">
+                <img src="${escapeHtml(optimizeProductImage(item.thumbnail_url || 'img/placeholder.jpg', 'mini'))}" alt="${escapeHtml(item.product_name)}" class="admin-order-item-thumb" loading="lazy" decoding="async">
                 <span class="admin-order-item-name">
                     ${escapeHtml(item.product_name)}
                     ${item.variant_name ? `<span class="admin-order-item-variant" style="display: block; font-size: 0.85em; color: var(--text-muted); margin-top: 2px;">Phân loại: ${escapeHtml(item.variant_name)}</span>` : ''}

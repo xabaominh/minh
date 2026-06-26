@@ -295,7 +295,7 @@ export function renderCartItems() {
         const changeId = isLoggedIn ? item.item_id : `'${item.id}_${item.variant_id || 0}'`;
         return `
         <div class="cart-item">
-            <img src="${optimizeProductImage(item.image)}" alt="${item.name}" loading="lazy" decoding="async"
+            <img src="${optimizeProductImage(item.image, 'mini')}" alt="${item.name}" loading="lazy" decoding="async"
                  onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&q=60'">
             <div class="cart-item-info">
                 <h4>${item.name}</h4>

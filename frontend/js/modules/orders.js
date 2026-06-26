@@ -5,6 +5,7 @@
 import { API_BASE, state } from '../state.js';
 import { formatPrice } from './cart.js';
 import { sendOrderContact } from './chat.js';
+import { optimizeProductImage } from '../imageUtils.js';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -51,7 +52,7 @@ export async function loadOrders() {
                     : '';
                 return `
                 <div class="order-item-row">
-                    <img class="order-item-thumb" src="${escapeHtml(item.thumbnail_url || 'img/placeholder.jpg')}" alt="${escapeHtml(item.product_name)}">
+                    <img class="order-item-thumb" src="${escapeHtml(optimizeProductImage(item.thumbnail_url || 'img/placeholder.jpg', 'mini'))}" alt="${escapeHtml(item.product_name)}" loading="lazy" decoding="async">
                     <div class="order-item-info">
                         <span class="order-item-name">
                             ${escapeHtml(item.product_name)}

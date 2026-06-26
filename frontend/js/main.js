@@ -20,52 +20,63 @@ import { setupChat, updateChatVisibility } from './modules/chat.js';
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Load tất cả components (header, footer, modals)
+    // 1. Shell trước — hiển thị trang nhanh
     await Promise.all([
         loadComponent('header-slot', 'components/header.html'),
         loadComponent('footer-slot', 'components/footer.html'),
+    ]);
+
+    await switchView('home');
+
+    // Modal tải nền, không chặn render sản phẩm
+    const loadModals = () => Promise.all([
         loadComponent('cart-modal-slot', 'components/cartModal.html'),
         loadComponent('auth-modal-slot', 'components/authModal.html'),
         loadComponent('checkout-modal-slot', 'components/checkoutModal.html'),
         loadComponent('product-modal-slot', 'components/productModal.html'),
         loadComponent('chat-widget-slot', 'components/chatWidget.html'),
-    ]);
+    ]).then(() => {
+        setupAuth();
+        setupCart();
+        setupCheckout();
+        setupProductModal();
+        setupChat();
+        updateCartUI();
+    });
 
-    // 2. Load default view (home)
-    await switchView('home');
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => loadModals(), { timeout: 1200 });
+    } else {
+        setTimeout(loadModals, 300);
+    }
 
-    // 3. Kiểm tra đăng nhập
+    // 2. Auth + data song song
     await checkAuth();
     updateChatVisibility();
     window.addEventListener('authChanged', () => updateChatVisibility());
     if (isManagementUser(state.currentUser)) {
+        await loadModals();
         await switchView('admin');
         await loadAdminDashboard();
     }
 
-    // 4. Load data
-    await loadCategoriesData();
-    renderCategoryButtons();
-    loadProducts();
+    loadCategoriesData().then(() => {
+        renderCategoryButtons();
+        loadProducts();
+    });
 
-    // 5. Setup events
+    // 3. Setup events (không phụ thuộc modal)
     setupNavigation();
-    setupAuth();
     setupAccountNav();
-    setupCart();
-    setupCheckout();
     setupSearch();
     setupSorting();
     setupPriceFilter();
-    setupProductModal();
     setupScrollEffects();
     setupMobileMenu();
     setupSidebarToggle();
     setupScrollReveal();
-    updateCartUI();
-    setupChat();
 
-    // 6. Lắng nghe sự kiện chuyển view
+    // 4. Lắng nghe sự kiện chuyển view
     window.addEventListener('viewChanged', async (e) => {
         const { viewName, filterCategoryId } = e.detail;
 

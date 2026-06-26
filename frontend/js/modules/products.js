@@ -4,7 +4,7 @@
 
 import { API_BASE, state } from '../state.js';
 import { formatPrice, showNotification, addToCart, syncCartFromServer, closeCheckoutModal } from './cart.js';
-import { optimizeProductImage } from '../imageUtils.js';
+import { optimizeProductImage, productImagePair, imagePlaceholder, initLazyImages } from '../imageUtils.js';
 import { getEffectivePrice, formatPriceHtml, renderStars, hasDiscount, discountPercent } from '../priceUtils.js';
 
 // ===== CATEGORIES =====
@@ -108,18 +108,18 @@ export async function loadProducts(categoryId = null, search = null) {
             return;
         }
 
-        container.innerHTML = products.map(p => {
+        container.innerHTML = products.map((p) => {
             const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const thumb = optimizeProductImage(p.thumbnail_url);
+            const thumb = optimizeProductImage(p.thumbnail_url, 'card');
             const unitPrice = getEffectivePrice(p);
             const saleBadge = hasDiscount(p.price, p.discount_price)
                 ? `<div class="discount-badge">-${discountPercent(p.price, p.discount_price)}%</div>` : '';
             return `
             <div class="the-san-pham reveal-on-scroll" data-id="${p.id}">
                 <div class="product-img-wrapper" onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">
-                    <img src="${thumb}" alt="${p.product_name}" loading="lazy" decoding="async"
-                         width="600" height="600"
-                         onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=60'">
+                    <img src="${imagePlaceholder()}" data-src="${thumb}" alt="${p.product_name}"
+                         width="400" height="300" decoding="async" class="lazy-product-img"
+                         onerror="this.onerror=null;this.src='${imagePlaceholder()}'">
                     <div class="product-badge">${p.category_name}</div>
                     ${saleBadge}
                 </div>
@@ -138,6 +138,7 @@ export async function loadProducts(categoryId = null, search = null) {
             </div>`;
         }).join('');
 
+        initLazyImages(container, { eagerCount: 2 });
         setupScrollReveal();
     } catch (err) {
         console.error('Load products error:', err);
@@ -210,9 +211,9 @@ function renderCollectionProducts(products) {
         return;
     }
 
-    grid.innerHTML = products.map(p => {
+    grid.innerHTML = products.map((p) => {
         const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const thumb = optimizeProductImage(p.thumbnail_url);
+        const thumb = optimizeProductImage(p.thumbnail_url, 'card');
         const unitPrice = getEffectivePrice(p);
         const saleBadge = hasDiscount(p.price, p.discount_price)
             ? `<div class="discount-badge">-${discountPercent(p.price, p.discount_price)}%</div>` : '';
@@ -224,9 +225,9 @@ function renderCollectionProducts(products) {
         return `
         <div class="the-san-pham-doc" data-id="${p.id}">
             <div class="hinh-anh-sp-doc" onclick="window._products.openProductModal(${p.id})" style="cursor:pointer;">
-                <img src="${thumb}" alt="${p.product_name}" loading="lazy" decoding="async"
-                     width="600" height="600"
-                     onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=60'">
+                <img src="${imagePlaceholder()}" data-src="${thumb}" alt="${p.product_name}"
+                     width="400" height="300" decoding="async" class="lazy-product-img"
+                     onerror="this.onerror=null;this.src='${imagePlaceholder()}'">
                 <div class="product-badge">${p.category_name}</div>
                 ${saleBadge}
             </div>
@@ -249,15 +250,16 @@ function renderCollectionProducts(products) {
         </div>`;
     }).join('');
 
-    // Card reveal animation
+    initLazyImages(grid, { eagerCount: 4 });
+
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, idx) => {
+        entries.forEach((entry) => {
             if (entry.isIntersecting) {
-                setTimeout(() => entry.target.classList.add('revealed'), idx * 30);
+                entry.target.classList.add('revealed');
                 observer.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.08 });
     document.querySelectorAll('.the-san-pham-doc').forEach(el => observer.observe(el));
 }
 
@@ -377,56 +379,43 @@ export async function openProductModal(productId, options = {}) {
         const reviewUrl = options.orderId
             ? `${API_BASE}/products/${productId}/reviews?order_id=${options.orderId}`
             : `${API_BASE}/products/${productId}/reviews`;
-        const [productRes, reviewRes] = await Promise.all([
-            fetch(`${API_BASE}/products/${productId}`),
-            fetch(reviewUrl, { credentials: 'include' })
-        ]);
+
+        const productRes = await fetch(`${API_BASE}/products/${productId}`);
         if (!productRes.ok) throw new Error('API Error');
         const p = await productRes.json();
         currentProduct = p;
         selectedVariantId = p.variants && p.variants.length > 0 ? p.variants[0].id : null;
 
-        const reviewData = reviewRes.ok ? await reviewRes.json() : { reviews: [], summary: { average: 0, count: 0 }, can_review: false };
-        const thumb = optimizeProductImage(p.thumbnail_url);
-        
         let displayPrice = p.price;
         let displayDiscount = p.discount_price;
         let displayStock = p.stock_quantity;
-        let displayThumb = thumb;
+        let displayImageRaw = p.thumbnail_url;
         if (selectedVariantId && p.variants && p.variants.length > 0) {
             const v = p.variants[0];
             displayPrice = v.price;
             displayDiscount = v.discount_price;
             displayStock = v.stock_quantity;
-            if (v.thumbnail_url) displayThumb = optimizeProductImage(v.thumbnail_url);
+            if (v.thumbnail_url) displayImageRaw = v.thumbnail_url;
         }
+
+        const displayThumb = optimizeProductImage(displayImageRaw, 'modal');
 
         const unitPrice = getEffectivePrice({ price: displayPrice, discount_price: displayDiscount });
         const safeName = p.product_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const priceBlock = formatPriceHtml(displayPrice, displayDiscount, 'product-detail-price');
-        const reviewsHtml = (reviewData.reviews || []).map(r => `
-            <div class="review-item">
-                <div class="product-rating-summary">${renderStars(r.rating)} <strong>${escapeHtml(r.full_name || r.username)}</strong></div>
-                <p>${escapeHtml(r.comment || '')}</p>
-                <small style="color:var(--text-muted);">${escapeHtml(r.created_at || '')}</small>
-            </div>
-        `).join('') || '<p style="color:var(--text-muted);">Chưa có đánh giá.</p>';
 
-        const reviewFormHtml = reviewData.can_review ? `
-            <form id="reviewForm" class="review-form">
-                <div class="star-picker" id="reviewStarPicker">
-                    ${[1,2,3,4,5].map(n => `<i class="fas fa-star" data-star="${n}"></i>`).join('')}
-                </div>
-                <textarea id="reviewComment" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
-                <button type="submit" class="auth-submit-btn"><i class="fas fa-paper-plane"></i> Gửi đánh giá</button>
-            </form>
-        ` : `<p class="review-hint">${escapeHtml(reviewData.review_message || 'Chỉ khách đã mua và nhận hàng mới được đánh giá.')}</p>`;
+        const buildGalleryThumb = (rawUrl, active = false) => {
+            const { thumb, full } = productImagePair(rawUrl);
+            if (active) {
+                return `<img src="${thumb}" data-full="${full}" class="gallery-thumb active" decoding="async" onclick="window._products.changeMainImage(this)">`;
+            }
+            return `<img src="${imagePlaceholder()}" data-src="${thumb}" data-full="${full}" class="gallery-thumb lazy-product-img" decoding="async" onclick="window._products.changeMainImage(this)">`;
+        };
 
-        let imagesHtml = `<img src="${displayThumb}" class="gallery-thumb active" onclick="window._products.changeMainImage(this, '${displayThumb}')">`;
+        let imagesHtml = buildGalleryThumb(displayImageRaw, true);
         if (p.images && p.images.length > 0) {
             p.images.forEach(img => {
-                const optimized = optimizeProductImage(img.url);
-                imagesHtml += `<img src="${optimized}" class="gallery-thumb" onclick="window._products.changeMainImage(this, '${optimized}')">`;
+                imagesHtml += buildGalleryThumb(img.url);
             });
         }
 
@@ -452,15 +441,15 @@ export async function openProductModal(productId, options = {}) {
             <div class="product-detail-layout">
                 <div class="product-detail-images">
                     <div class="main-image-wrapper">
-                        <img src="${displayThumb}" id="mainProductImage" alt="${p.product_name}" decoding="async">
+                        <img src="${displayThumb}" id="mainProductImage" alt="${p.product_name}" decoding="async" fetchpriority="high">
                     </div>
-                    <div class="gallery-images">${imagesHtml}</div>
+                    <div class="gallery-images" id="modalGalleryImages">${imagesHtml}</div>
                 </div>
                 <div class="product-detail-info">
                     <div class="product-detail-category">${p.category_name}</div>
                     <h2>${p.product_name}</h2>
                     ${priceBlock}
-                    <div class="product-rating-summary">${renderStars(reviewData.summary?.average || 0)} <span>${reviewData.summary?.count || 0} đánh giá</span></div>
+                    <div class="product-rating-summary" id="modalRatingSummary"><span class="review-loading-hint">Đang tải đánh giá...</span></div>
                     <p class="product-detail-desc">${p.description || 'Không có mô tả cho sản phẩm này.'}</p>
                     ${variantSelectorHtml}
                     <div class="product-specs">
@@ -484,18 +473,59 @@ export async function openProductModal(productId, options = {}) {
             </div>
             <div class="reviews-section reviews-section-full">
                 <h3><i class="fas fa-star"></i> Đánh giá sản phẩm</h3>
-                ${reviewFormHtml}
-                <div id="reviewsList">${reviewsHtml}</div>
+                <div id="reviewFormSlot"><p class="review-hint">Đang tải...</p></div>
+                <div id="reviewsList"><p class="review-hint">Đang tải đánh giá...</p></div>
             </div>
         `;
 
-        setupReviewForm(productId, options);
+        initLazyImages(document.getElementById('modalGalleryImages'));
 
-        if (options.focusReview) {
-            requestAnimationFrame(() => {
-                body.querySelector('.reviews-section-full')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        fetch(reviewUrl, { credentials: 'include' })
+            .then(res => res.ok ? res.json() : { reviews: [], summary: { average: 0, count: 0 }, can_review: false })
+            .then((reviewData) => {
+                if (!document.getElementById('productModal')?.classList.contains('active')) return;
+
+                const ratingEl = document.getElementById('modalRatingSummary');
+                if (ratingEl) {
+                    ratingEl.innerHTML = `${renderStars(reviewData.summary?.average || 0)} <span>${reviewData.summary?.count || 0} đánh giá</span>`;
+                }
+
+                const reviewsHtml = (reviewData.reviews || []).map(r => `
+                    <div class="review-item">
+                        <div class="product-rating-summary">${renderStars(r.rating)} <strong>${escapeHtml(r.full_name || r.username)}</strong></div>
+                        <p>${escapeHtml(r.comment || '')}</p>
+                        <small style="color:var(--text-muted);">${escapeHtml(r.created_at || '')}</small>
+                    </div>
+                `).join('') || '<p style="color:var(--text-muted);">Chưa có đánh giá.</p>';
+
+                const reviewsList = document.getElementById('reviewsList');
+                if (reviewsList) reviewsList.innerHTML = reviewsHtml;
+
+                const formSlot = document.getElementById('reviewFormSlot');
+                if (formSlot) {
+                    formSlot.innerHTML = reviewData.can_review ? `
+                        <form id="reviewForm" class="review-form">
+                            <div class="star-picker" id="reviewStarPicker">
+                                ${[1,2,3,4,5].map(n => `<i class="fas fa-star" data-star="${n}"></i>`).join('')}
+                            </div>
+                            <textarea id="reviewComment" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                            <button type="submit" class="auth-submit-btn"><i class="fas fa-paper-plane"></i> Gửi đánh giá</button>
+                        </form>
+                    ` : `<p class="review-hint">${escapeHtml(reviewData.review_message || 'Chỉ khách đã mua và nhận hàng mới được đánh giá.')}</p>`;
+                }
+
+                setupReviewForm(productId, options);
+
+                if (options.focusReview) {
+                    requestAnimationFrame(() => {
+                        body.querySelector('.reviews-section-full')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                }
+            })
+            .catch(() => {
+                const reviewsList = document.getElementById('reviewsList');
+                if (reviewsList) reviewsList.innerHTML = '<p class="review-hint">Không tải được đánh giá.</p>';
             });
-        }
     } catch (err) {
         body.innerHTML = '<div class="loading-products error"><i class="fas fa-exclamation-triangle"></i><p>Không thể tải thông tin sản phẩm.</p></div>';
     }
@@ -555,9 +585,10 @@ function setupReviewForm(productId, options = {}) {
 
 function changeMainImage(element, url) {
     const mainImg = document.getElementById('mainProductImage');
-    if (mainImg) mainImg.src = url;
+    const nextUrl = url || element?.dataset?.full || element?.src;
+    if (mainImg && nextUrl) mainImg.src = nextUrl;
     document.querySelectorAll('.gallery-thumb').forEach(el => el.classList.remove('active'));
-    element.classList.add('active');
+    if (element) element.classList.add('active');
 }
 
 function changeModalQty(delta) {
@@ -583,7 +614,7 @@ async function addToCartFromModal(id, name, price, imageUrl) {
         if (v) {
             variantName = v.variant_name;
             variantPrice = getEffectivePrice(v);
-            if (v.thumbnail_url) variantThumb = optimizeProductImage(v.thumbnail_url);
+            if (v.thumbnail_url) variantThumb = v.thumbnail_url;
         }
     }
 
@@ -645,7 +676,7 @@ export function selectVariant(variantId) {
     const mainImg = document.getElementById('mainProductImage');
     if (mainImg) {
         const thumbUrl = v.thumbnail_url || currentProduct.thumbnail_url;
-        mainImg.src = optimizeProductImage(thumbUrl);
+        mainImg.src = optimizeProductImage(thumbUrl, 'modal');
     }
 
     // Update price block
