@@ -197,6 +197,45 @@ def send_customer_message(user_id, body):
             conn.close()
 
 
+def notify_admin_new_order(cursor, user_id, order_id, final_amount, payment_method='COD', receiver_name=''):
+    """Gửi tin nhắn từ khách vào hội thoại để admin nhận thông báo đơn mới."""
+    cursor.execute("""
+        SELECT id FROM chat_conversations
+        WHERE user_id = %s AND status = 'OPEN'
+        ORDER BY last_message_at DESC, id DESC
+        LIMIT 1
+    """, (user_id,))
+    conv = cursor.fetchone()
+
+    if not conv:
+        cursor.execute("""
+            INSERT INTO chat_conversations (user_id, subject, status)
+            VALUES (%s, 'Hỗ trợ khách hàng', 'OPEN')
+        """, (user_id,))
+        conv_id = cursor.lastrowid
+    else:
+        conv_id = conv['id']
+
+    payment_label = 'Thanh toán khi nhận hàng' if payment_method == 'COD' else 'Chuyển khoản ngân hàng'
+    amount = f"{float(final_amount):,.0f}".replace(',', '.')
+    receiver = (receiver_name or '').strip() or 'Khách hàng'
+
+    msg_body = (
+        f"Đã đặt đơn hàng #{order_id}. "
+        f"Tổng thanh toán: {amount} đ ({payment_label}). "
+        f"Người nhận: {receiver}. Mong shop xác nhận đơn sớm."
+    )
+
+    cursor.execute(
+        "INSERT INTO chat_messages (conversation_id, sender_id, body) VALUES (%s, %s, %s)",
+        (conv_id, user_id, msg_body)
+    )
+    cursor.execute(
+        "UPDATE chat_conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = %s",
+        (conv_id,)
+    )
+
+
 def get_customer_unread_count(user_id):
     conn = None
     cursor = None

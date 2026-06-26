@@ -3,6 +3,7 @@ from database import get_db
 from utils.helpers import decimal_to_float, effective_price
 from utils.validators import validate_phone
 from services.coupon_service import validate_coupon
+from services.chat_service import notify_admin_new_order
 from models.order import serialize_order
 
 
@@ -134,6 +135,10 @@ def create_order(user_id, payment_method, shipping_address, receiver_name='', re
                 "UPDATE coupons SET used_count = used_count + 1 WHERE id = %s",
                 (coupon_id,)
             )
+
+        notify_admin_new_order(
+            cursor, user_id, order_id, final_amount, payment_method, receiver_name
+        )
 
         conn.commit()
 
